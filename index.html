@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         .card { @apply bg-white p-6 rounded-xl shadow-md border border-slate-200 transition-all hover:shadow-lg; }
         .input-group { @apply mb-5; }
@@ -23,14 +24,15 @@
         .breakdown-cell { @apply py-1.5 px-8 border border-slate-200 text-[11px] text-slate-500 font-normal bg-slate-50/50; }
         .expand-btn { @apply w-5 h-5 inline-flex items-center justify-center rounded border border-slate-300 mr-2 text-[10px] font-black cursor-pointer hover:bg-slate-100 transition-colors; }
         input[type="number"] { @apply w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-red-500 focus:outline-none transition-all; }
-        .btn-reset { @apply bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-200 transition-all border border-slate-200; }
+        .btn-reset { @apply bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all border border-slate-200; }
+        .btn-export { @apply bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm; }
         .stepper-btn { @apply w-8 h-8 flex items-center justify-center bg-slate-100 rounded-lg text-red-600 hover:bg-red-600 hover:text-white transition-all font-black border border-slate-200 active:scale-95; }
         .editable-red { @apply text-red-600 font-bold; }
-        .bg-tag { @apply text-[10px] font-bold text-slate-400 mt-1 block uppercase; }
+        .bg-tag { @apply text-[9px] font-bold text-slate-400 mt-1 block uppercase; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-900">
-    <div class="max-w-7xl mx-auto">
+    <div id="dashboard-content" class="max-w-7xl mx-auto bg-slate-50 p-4 rounded-xl">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div>
@@ -40,12 +42,19 @@
                 </div>
                 <p class="text-slate-500 font-medium tracking-tight">Analysis of April - June 2026</p>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[200px]">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Starting Liquidity (MTHB)</span>
-                    <input type="number" id="bgn_cash_input" value="1200" oninput="updateDashboard()" class="text-xl font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
+            <div class="flex items-center gap-3">
+                <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[180px]">
+                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">BGN Liquidity (MTHB)</span>
+                    <input type="number" id="bgn_cash_input" value="1200" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
                 </div>
-                <button onclick="resetInputs()" class="btn-reset">Reset All</button>
+                <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[140px]">
+                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Ticket Collection %</span>
+                    <input type="number" id="ticket_rate_input" value="50" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="exportToImage()" class="btn-export">Export Image</button>
+                    <button onclick="resetInputs()" class="btn-reset">Reset All</button>
+                </div>
             </div>
         </div>
 
@@ -71,9 +80,15 @@
                         <button onclick="step('lf_4', 0.1)" class="stepper-btn">+</button>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Average Fare (THB)</label>
-                    <input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fare (THB)</label>
+                        <input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
+                        <input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
                 </div>
             </div>
             <!-- May -->
@@ -96,9 +111,15 @@
                         <button onclick="step('lf_5', 0.1)" class="stepper-btn">+</button>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Average Fare (THB)</label>
-                    <input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fare (THB)</label>
+                        <input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
+                        <input type="number" id="fuel_5" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
                 </div>
             </div>
             <!-- June -->
@@ -121,9 +142,15 @@
                         <button onclick="step('lf_6', 0.1)" class="stepper-btn">+</button>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Average Fare (THB)</label>
-                    <input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fare (THB)</label>
+                        <input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
+                    <div class="input-group mb-0">
+                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
+                        <input type="number" id="fuel_6" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,7 +198,7 @@
                     </div>
                 </div>
 
-                <!-- Breakeven Section -->
+                <!-- Breakeven & Model Logic -->
                 <div class="card !p-0 overflow-hidden">
                     <div class="p-4 border-b border-slate-200 bg-slate-50">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Target for 0 NPAT</h3>
@@ -259,11 +286,12 @@
         }
 
         function resetInputs() {
-            document.getElementById('cap_4').value = 2327000; document.getElementById('lf_4').value = 84.3; document.getElementById('fare_4').value = 2055;
-            document.getElementById('cap_5').value = 2235000; document.getElementById('lf_5').value = 82.3; document.getElementById('fare_5').value = 1881;
-            document.getElementById('cap_6').value = 2047000; document.getElementById('lf_6').value = 81.7; document.getElementById('fare_6').value = 1693;
+            document.getElementById('cap_4').value = 2327000; document.getElementById('lf_4').value = 84.3; document.getElementById('fare_4').value = 2055; document.getElementById('fuel_4').value = 200;
+            document.getElementById('cap_5').value = 2235000; document.getElementById('lf_5').value = 82.3; document.getElementById('fare_5').value = 1881; document.getElementById('fuel_5').value = 200;
+            document.getElementById('cap_6').value = 2047000; document.getElementById('lf_6').value = 81.7; document.getElementById('fare_6').value = 1693; document.getElementById('fuel_6').value = 200;
             document.getElementById('bgn_cash_input').value = 1200;
             ticketCollectionRate = 50;
+            document.getElementById('ticket_rate_input').value = 50;
             updateDashboard();
         }
 
@@ -272,9 +300,9 @@
         }
 
         function calc(id, col) {
-            const bCap = data[535][col], cCap = parseFloat(document.getElementById(`cap_${id}`).value), cLF = parseFloat(document.getElementById(`lf_${id}`).value) / 100, cFare = parseFloat(document.getElementById(`fare_${id}`).value), cPax = cCap * cLF;
+            const bCap = data[535][col], cCap = parseFloat(document.getElementById(`cap_${id}`).value), cLF = parseFloat(document.getElementById(`lf_${id}`).value) / 100, cFare = parseFloat(document.getElementById(`fare_${id}`).value), fP = parseFloat(document.getElementById(`fuel_${id}`).value), cPax = cCap * cLF;
             const sched = cPax * cFare, anc = [27, 49, 60, 63, 65].reduce((a, r) => a + scale(data[r][col], bCap, cCap, 0), 0), oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
-            const cogs = { rnt: scale(data[110][col], bCap, cCap, 1), sal: scale(data[112][col], bCap, cCap, 0.2), fuel: scale(data[134][col], bCap, cCap, 0), usr: scale(data[138][col], bCap, cCap, 0), mnt: scale(data[149][col], bCap, cCap, 1), mls: scale(data[189][col], bCap, cCap, 0), dst: netRev * 0.03, rmp: scale(data[238][col], bCap, cCap, 0.2), ocs: scale(data[256][col], bCap, cCap, 0.1) };
+            const cogs = { rnt: scale(data[110][col], bCap, cCap, 1), sal: scale(data[112][col], bCap, cCap, 0.2), fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), usr: scale(data[138][col], bCap, cCap, 0), mnt: scale(data[149][col], bCap, cCap, 1), mls: scale(data[189][col], bCap, cCap, 0), dst: netRev * 0.03, rmp: scale(data[238][col], bCap, cCap, 0.2), ocs: scale(data[256][col], bCap, cCap, 0.1) };
             const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0);
             const opex = { sal: scale(data[292][col], bCap, cCap, 1), prm: (data[314].J / 4717065636) * netRev, ins: scale(data[347][col], bCap, cCap, 1), fee: scale(data[361][col], bCap, cCap, 1), ga: scale(data[378][col], bCap, cCap, 1), ope: scale(data[417][col], bCap, cCap, 1), srv: scale(data[434][col], bCap, cCap, 1) };
             const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0);
@@ -285,9 +313,7 @@
             const cout = cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
             
             const otherCOGS = totCOGS - cogs.dst, otherRev = netRev - sched, rhs = (otherCOGS + totOPEX + dep + netInt + fx + tax) - (otherRev * 0.97);
-            const beFare = rhs / (Math.max(1, cCap * cLF) * 0.97), beLF = rhs / (Math.max(1, cCap * cFare) * 0.97);
-            const bgDiff = ((cCap / budgetedSeats[id]) - 1) * 100;
-
+            const beFare = rhs / (Math.max(1, cCap * cLF) * 0.97), beLF = rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff = ((cCap / budgetedSeats[id]) - 1) * 100;
             return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop, fx, tax, npat, cin, deb, cout, coMaint: coMnt, netInt, beFare, beLF, bgDiff };
         }
 
@@ -300,7 +326,7 @@
                 document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
                 document.getElementById(`lf_${id}_val`).innerText = document.getElementById(`lf_${id}`).value + '%';
                 const d = res[id].bgDiff;
-                document.getElementById(`bg_${id}_diff`).innerText = (d >= 0 ? '+' : '') + d.toFixed(0) + '% FROM BG';
+                document.getElementById(`bg_${id}_diff`).innerText = (d >= 0 ? '+' : '') + Math.round(d) + '% FROM BG';
             });
             document.getElementById('ass_content').style.display = breakdownState.ass ? 'block' : 'none';
             document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+';
@@ -314,11 +340,11 @@
             const disp = (id) => breakdownState[id] ? 'table-row' : 'none';
             const btn = (id) => breakdownState[id] ? '–' : '+';
             document.getElementById('pl_body').innerHTML = `
-                <tr><td class="table-cell font-black"><span class="expand-btn" id="btn-rev" onclick="toggleBreakdown('rev')">${btn('rev')}</span>Net Revenue</td><td class="table-cell text-right">${f(res[4].netRev)}</td><td class="table-cell text-right">${f(res[5].netRev)}</td><td class="table-cell text-right">${f(res[6].netRev)}</td><td class="table-cell text-right total-col font-bold">${f(tot('netRev'))}</td></tr>
+                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('rev')">${btn('rev')}</span>Net Revenue</td><td class="table-cell text-right">${f(res[4].netRev)}</td><td class="table-cell text-right">${f(res[5].netRev)}</td><td class="table-cell text-right">${f(res[6].netRev)}</td><td class="table-cell text-right total-col font-bold">${f(tot('netRev'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('sched'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary & Other</td><td class="breakdown-cell text-right">${f(res[4].anc+res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].anc+res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].anc+res[6].oinc)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('anc')+tot('oinc'))}</td></tr>
                 
-                <tr><td class="table-cell font-black"><span class="expand-btn" id="btn-cogs" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
+                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental of aircrafts</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td><td class="breakdown-cell text-right total-col font-bold">${f(subVal(res,'cogs','rnt'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td><td class="breakdown-cell text-right total-col font-bold">${f(subVal(res,'cogs','sal'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td><td class="breakdown-cell text-right total-col font-bold">${f(subVal(res,'cogs','fuel'))}</td></tr>
@@ -339,8 +365,8 @@
                 <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Services sold/ purchased</td><td class="breakdown-cell text-right">${f(res[4].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[5].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[6].opex.srv)}</td><td class="breakdown-cell text-right total-col font-bold">${f(subVal(res,'opex','srv'))}</td></tr>
 
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('nop')">${btn('nop')}</span>Net Operating Income</td><td class="table-cell text-right font-bold">${f(res[4].nop)}</td><td class="table-cell text-right font-bold">${f(res[5].nop)}</td><td class="table-cell text-right font-bold">${f(res[6].nop)}</td><td class="table-cell text-right total-col font-bold">${f(tot('nop'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">FX - Realised Portion</td><td class="breakdown-cell text-right">${f(res[4].fx)}</td><td class="breakdown-cell text-right">${f(res[5].fx)}</td><td class="breakdown-cell text-right">${f(res[6].fx)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('fx'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">Taxation</td><td class="breakdown-cell text-right">${f(res[4].tax)}</td><td class="breakdown-cell text-right">${f(res[5].tax)}</td><td class="breakdown-cell text-right">${f(res[6].tax)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('tax'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">FX - Realised Portion</td><td class="breakdown-cell text-right font-bold">${f(res[4].fx)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].fx)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].fx)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('fx'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">Taxation</td><td class="breakdown-cell text-right font-bold">${f(res[4].tax)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].tax)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].tax)}</td><td class="breakdown-cell text-right total-col font-bold">${f(tot('tax'))}</td></tr>
                 <tr class="bg-blue-50/50"><td class="table-cell font-black">Profit After Tax (NPAT)</td><td class="table-cell text-right font-black text-blue-700">${f(res[4].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[5].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[6].npat)}</td><td class="table-cell text-right total-col font-black text-blue-700">${f(tot('npat'))}</td></tr>
             `;
         }
@@ -351,28 +377,28 @@
             const disp = (id) => breakdownState[id] ? 'table-row' : 'none';
             const btn = (id) => breakdownState[id] ? '–' : '+';
             document.getElementById('cf_body').innerHTML = `
-                <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right">${f(b*1e6)}</td><td class="table-cell text-right">${f(c4*1e6)}</td><td class="table-cell text-right">${f(c5*1e6)}</td></tr>
-                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600">${f(res[6].cin)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Ticket Collection (<input type="number" id="ticket_rate_input" value="${ticketCollectionRate}" oninput="updateDashboard()" class="w-10 bg-transparent text-red-600 border-0 p-0 font-bold focus:ring-0">%)</td><td class="breakdown-cell text-right">${f(res[4].netRev*(ticketCollectionRate/100))}</td><td class="breakdown-cell text-right">${f(res[5].netRev*(ticketCollectionRate/100))}</td><td class="breakdown-cell text-right">${f(res[6].netRev*(ticketCollectionRate/100))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">${f(res[6].deb)}</td></tr>
-                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative">${f(res[4].cout)}</td><td class="table-cell text-right negative">${f(res[5].cout)}</td><td class="table-cell text-right negative">${f(res[6].cout)}</td></tr>
+                <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right font-bold">${f(b*1e6)}</td><td class="table-cell text-right font-bold">${f(c4*1e6)}</td><td class="table-cell text-right font-bold">${f(c5*1e6)}</td></tr>
+                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[6].cin)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-xs">Ticket Collection (Red %)</td><td class="breakdown-cell text-right font-bold">${f(res[4].cin - (res[4].deb||0))}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cin - (res[5].deb||0))}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cin - (res[6].deb||0))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture</td><td class="breakdown-cell text-right font-bold">0.0</td><td class="breakdown-cell text-right font-bold">0.0</td><td class="breakdown-cell text-right font-bold">${f(res[6].deb)}</td></tr>
+                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative font-bold">${f(res[4].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[5].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[6].cout)}</td></tr>
                 
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">User Charges & Stations</td><td class="breakdown-cell text-right">${f(res[4].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.usr)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Maintenance (Flown Cap)</td><td class="breakdown-cell text-right">${f(res[4].coMaint)}</td><td class="breakdown-cell text-right">${f(res[5].coMaint)}</td><td class="breakdown-cell text-right">${f(res[6].coMaint)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Meals & Merchandise</td><td class="breakdown-cell text-right">${f(res[4].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mls)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Sales & Distribution</td><td class="breakdown-cell text-right">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.dst)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">RAMP Operational costs</td><td class="breakdown-cell text-right">${f(res[4].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rmp)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other cost of sales</td><td class="breakdown-cell text-right">${f(res[4].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.ocs)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Insurance</td><td class="breakdown-cell text-right">${f(res[4].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ins)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fee</td><td class="breakdown-cell text-right">${f(res[4].opex.fee*0.5)}</td><td class="breakdown-cell text-right">${f(res[5].opex.fee*0.5)}</td><td class="breakdown-cell text-right">${f(res[6].opex.fee*0.5)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">General & administrative</td><td class="breakdown-cell text-right">${f(res[4].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ga)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other operating expenses</td><td class="breakdown-cell text-right">${f(res[4].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ope)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Services sold/ purchased</td><td class="breakdown-cell text-right">${f(res[4].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[5].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[6].opex.srv)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest expense</td><td class="breakdown-cell text-right">${f(res[4].netInt)}</td><td class="breakdown-cell text-right">${f(res[5].netInt)}</td><td class="breakdown-cell text-right">${f(res[6].netInt)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.sal)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.fuel)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">User Charges & Stations</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.usr)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.usr)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.usr)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Maintenance (Op. Fleet)</td><td class="breakdown-cell text-right font-bold">${f(res[4].coMaint)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].coMaint)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].coMaint)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Meals & Merchandise</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.mls)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.mls)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.mls)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Sales & Distribution</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.dst)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">RAMP Operational costs</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.rmp)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.rmp)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.rmp)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other cost of sales</td><td class="breakdown-cell text-right font-bold">${f(res[4].cogs.ocs)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].cogs.ocs)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].cogs.ocs)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.sal)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell text-right font-bold">Promotion</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.prm)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Insurance</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.ins)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.ins)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.ins)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fee</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.fee*0.5)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.fee*0.5)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.fee*0.5)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell text-right font-bold">G&A</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.ga)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.ga)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.ga)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell text-right font-bold">Other OPEX</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.ope)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.ope)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.ope)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell text-right font-bold">Services Sold/Purchased</td><td class="breakdown-cell text-right font-bold">${f(res[4].opex.srv)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].opex.srv)}</td><td class="breakdown-cell text-right font-bold">${f(res[6].opex.srv)}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest expense</td><td class="breakdown-cell text-right font-bold">${f(res[4].netInt)}</td><td class="breakdown-cell text-right font-bold">${f(res[5].netInt)}</td><td class="table-cell text-right font-bold">${f(res[6].netInt)}</td></tr>
 
                 <tr class="bg-emerald-50/50"><td class="table-cell font-black text-emerald-700">Ending Cash Balance</td><td class="table-cell text-right font-black text-emerald-700">${f(c4*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c5*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c6*1e6)}</td></tr>
             `;
@@ -400,6 +426,15 @@
             const d = [b, b + (res[4].cin - res[4].cout)/1e6, b + (res[4].cin - res[4].cout + res[5].cin - res[5].cout)/1e6, b + (res[4].cin - res[4].cout + res[5].cin - res[5].cout + res[6].cin - res[6].cout)/1e6];
             if (cashChart) cashChart.destroy();
             cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { maintainAspectRatio: false, plugins: { datalabels: { anchor: 'end', align: 'top', offset: 2, color: '#2563eb', font: { size: 10, weight: 'bold' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, layout: { padding: { top: 30 } }, scales: { y: { grid: { display: false } }, x: { grid: { display: false } } } } });
+        }
+
+        async function exportToImage() {
+            const dashboard = document.getElementById('dashboard-content');
+            const canvas = await html2canvas(dashboard, { scale: 2, backgroundColor: '#f8fafc' });
+            const link = document.createElement('a');
+            link.download = 'Financial_Simulation_2Q2026.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         }
 
         resetInputs();
