@@ -160,7 +160,7 @@
                 <!-- P&L Table -->
                 <div class="card !p-0 overflow-hidden">
                     <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">P&L Simulation (MTHB)</h3>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">P&L Simulation (MTHB) (press + to see breakdown)</h3>
                     </div>
                     <div class="table-container">
                         <table class="w-full text-left border-collapse">
@@ -318,19 +318,31 @@
         }
 
         function updateDashboard() {
-            const ticketRateInput = document.getElementById('ticket_rate_input');
-            if (ticketRateInput) ticketCollectionRate = parseFloat(ticketRateInput.value) || 0;
-            const res = { 4: calc(4, 'J'), 5: calc(5, 'K'), 6: calc(6, 'L') };
-            renderPL(res); renderCF(res); renderBreak(res); renderCharts(res);
-            ['4','5','6'].forEach(id => {
-                document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
-                document.getElementById(`lf_${id}_val`).innerText = document.getElementById(`lf_${id}`).value + '%';
-                const d = res[id].bgDiff;
-                document.getElementById(`bg_${id}_diff`).innerText = (d >= 0 ? '+' : '') + Math.round(d) + '% FROM BG';
-            });
-            document.getElementById('ass_content').style.display = breakdownState.ass ? 'block' : 'none';
-            document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+';
-        }
+    const ticketRateInput = document.getElementById('ticket_rate_input');
+    if (ticketRateInput) ticketCollectionRate = parseFloat(ticketRateInput.value) || 0;
+
+    const res = { 4: calc(4, 'J'), 5: calc(5, 'K'), 6: calc(6, 'L') };
+    renderPL(res);
+    renderCF(res);
+    renderBreak(res);
+    renderCharts(res);
+
+    ['4','5','6'].forEach(id => {
+        document.getElementById(`cap_${id}_val`).innerText =
+            parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
+
+        document.getElementById(`lf_${id}_val`).innerText =
+            document.getElementById(`lf_${id}`).value + '%';
+
+        const d = res[id].bgDiff;
+        const bgDiffEl = document.getElementById(`bg_${id}_diff`);
+        bgDiffEl.innerText = (d >= 0 ? '+' : '') + Math.round(d) + '% FROM BG';
+        bgDiffEl.style.fontSize = '0.8em'; // smaller than surrounding text
+    });
+
+    document.getElementById('ass_content').style.display = breakdownState.ass ? 'block' : 'none';
+    document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+';
+}
 
         const f = (v) => (v / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
         const subVal = (res, k, s) => res[4][k][s] + res[5][k][s] + res[6][k][s];
