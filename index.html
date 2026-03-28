@@ -29,6 +29,11 @@
         .stepper-btn { @apply w-8 h-8 flex items-center justify-center bg-slate-100 rounded-lg text-red-600 hover:bg-red-600 hover:text-white transition-all font-black border border-slate-200 active:scale-95; }
         .editable-red { @apply text-red-600 font-bold; }
         .bg-tag { @apply text-[9px] font-bold text-slate-400 mt-1 block uppercase; }
+        /* Export styling */
+        .export-only { display: none; }
+        .is-exporting .export-only { display: inline-block; }
+        .is-exporting .no-export { display: none !important; }
+        .is-exporting input[type="number"] { border: none !important; background: transparent !important; padding: 0 !important; width: auto !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-900">
@@ -51,7 +56,7 @@
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Ticket Collection %</span>
                     <input type="number" id="ticket_rate_input" value="50" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-2 no-export" data-html2canvas-ignore>
                     <button onclick="exportToImage()" class="btn-export">Export Image</button>
                     <button onclick="resetInputs()" class="btn-reset">Reset All</button>
                 </div>
@@ -65,7 +70,7 @@
                 <h2 class="text-lg font-black mb-6 text-slate-800">April</h2>
                 <div class="input-group">
                     <label class="input-label">Capacity (Seats) <span id="cap_4_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1">
+                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
                         <button onclick="stepCap('cap_4', -10000)" class="stepper-btn">−</button>
                         <input type="range" id="cap_4" min="0" max="3000000" step="1000" oninput="updateDashboard()">
                         <button onclick="stepCap('cap_4', 10000)" class="stepper-btn">+</button>
@@ -74,7 +79,7 @@
                 </div>
                 <div class="input-group">
                     <label class="input-label">Load Factor (%) <span id="lf_4_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
                         <button onclick="step('lf_4', -0.1)" class="stepper-btn">−</button>
                         <input type="range" id="lf_4" min="0" max="100" step="0.1" oninput="updateDashboard()">
                         <button onclick="step('lf_4', 0.1)" class="stepper-btn">+</button>
@@ -82,12 +87,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB)</label>
-                        <input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fare (THB) <span id="fare_4_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
-                        <input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_4_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                 </div>
             </div>
@@ -96,7 +101,7 @@
                 <h2 class="text-lg font-black mb-6 text-slate-800">May</h2>
                 <div class="input-group">
                     <label class="input-label">Capacity (Seats) <span id="cap_5_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1">
+                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
                         <button onclick="stepCap('cap_5', -10000)" class="stepper-btn">−</button>
                         <input type="range" id="cap_5" min="0" max="3000000" step="1000" oninput="updateDashboard()">
                         <button onclick="stepCap('cap_5', 10000)" class="stepper-btn">+</button>
@@ -105,7 +110,7 @@
                 </div>
                 <div class="input-group">
                     <label class="input-label">Load Factor (%) <span id="lf_5_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
                         <button onclick="step('lf_5', -0.1)" class="stepper-btn">−</button>
                         <input type="range" id="lf_5" min="0" max="100" step="0.1" oninput="updateDashboard()">
                         <button onclick="step('lf_5', 0.1)" class="stepper-btn">+</button>
@@ -113,12 +118,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB)</label>
-                        <input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fare (THB) <span id="fare_5_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
-                        <input type="number" id="fuel_5" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_5_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fuel_5" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                 </div>
             </div>
@@ -127,7 +132,7 @@
                 <h2 class="text-lg font-black mb-6 text-slate-800">June</h2>
                 <div class="input-group">
                     <label class="input-label">Capacity (Seats) <span id="cap_6_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1">
+                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
                         <button onclick="stepCap('cap_6', -10000)" class="stepper-btn">−</button>
                         <input type="range" id="cap_6" min="0" max="3000000" step="1000" oninput="updateDashboard()">
                         <button onclick="stepCap('cap_6', 10000)" class="stepper-btn">+</button>
@@ -136,7 +141,7 @@
                 </div>
                 <div class="input-group">
                     <label class="input-label">Load Factor (%) <span id="lf_6_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
                         <button onclick="step('lf_6', -0.1)" class="stepper-btn">−</button>
                         <input type="range" id="lf_6" min="0" max="100" step="0.1" oninput="updateDashboard()">
                         <button onclick="step('lf_6', 0.1)" class="stepper-btn">+</button>
@@ -144,12 +149,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB)</label>
-                        <input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fare (THB) <span id="fare_6_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                     <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl)</label>
-                        <input type="number" id="fuel_6" value="200" oninput="updateDashboard()" class="editable-red !py-1">
+                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_6_val" class="label-val export-only"></span></label>
+                        <input type="number" id="fuel_6" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
                     </div>
                 </div>
             </div>
@@ -333,6 +338,12 @@
 
         document.getElementById(`lf_${id}_val`).innerText =
             document.getElementById(`lf_${id}`).value + '%';
+        
+        // Add Fare and Fuel span updates
+        document.getElementById(`fare_${id}_val`).innerText = 
+            parseFloat(document.getElementById(`fare_${id}`).value).toLocaleString();
+        document.getElementById(`fuel_${id}_val`).innerText = 
+            parseFloat(document.getElementById(`fuel_${id}`).value).toLocaleString();
 
         const d = res[id].bgDiff;
         const bgDiffEl = document.getElementById(`bg_${id}_diff`);
@@ -441,12 +452,24 @@
         }
 
         async function exportToImage() {
+            document.body.classList.add('is-exporting');
             const dashboard = document.getElementById('dashboard-content');
-            const canvas = await html2canvas(dashboard, { scale: 2, backgroundColor: '#f8fafc' });
+            // Give a tiny moment for styles to apply
+            await new Promise(r => setTimeout(r, 100));
+            
+            const canvas = await html2canvas(dashboard, { 
+                scale: 2, 
+                backgroundColor: '#f8fafc',
+                useCORS: true,
+                logging: false
+            });
+            
             const link = document.createElement('a');
             link.download = 'Financial_Simulation_2Q2026.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
+            
+            document.body.classList.remove('is-exporting');
         }
 
         resetInputs();
