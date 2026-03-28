@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Simulation April-June</title>
+    <title>Financial Simulation April-June 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         .card { @apply bg-white p-6 rounded-xl shadow-md border border-slate-200 transition-all hover:shadow-lg; }
-        .input-group { @apply mb-5; }
-        .input-label { @apply block text-xs font-bold uppercase text-slate-500 mb-2 flex justify-between; }
-        .label-val { @apply text-red-600 font-mono font-bold; }
-        input[type="range"] { @apply w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600; }
+        .input-group { @apply mb-4; }
+        .input-label { @apply block text-[10px] font-black uppercase text-slate-400 mb-1.5 flex justify-between items-center; }
+        .label-val { @apply text-red-600 font-mono font-bold text-sm; }
+        input[type="range"] { @apply w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600; }
         .table-container { @apply border border-slate-200 rounded-lg overflow-hidden mb-6; }
         .table-cell { @apply py-2 px-4 border border-slate-200 text-sm font-medium text-slate-700; }
         .table-header { @apply py-2 px-4 border border-slate-200 text-xs font-black uppercase text-slate-500 bg-slate-50 text-left; }
@@ -23,38 +23,49 @@
         .breakdown-row { @apply bg-slate-50/50; }
         .breakdown-cell { @apply py-1.5 px-8 border border-slate-200 text-[11px] text-slate-500 font-normal bg-slate-50/50; }
         .expand-btn { @apply w-5 h-5 inline-flex items-center justify-center rounded border border-slate-300 mr-2 text-[10px] font-black cursor-pointer hover:bg-slate-100 transition-colors; }
-        input[type="number"] { @apply w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-red-500 focus:outline-none transition-all; }
+        input[type="number"] { @apply w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all; }
         .btn-reset { @apply bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all border border-slate-200; }
         .btn-export { @apply bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm; }
-        .stepper-btn { @apply w-8 h-8 flex items-center justify-center bg-slate-100 rounded-lg text-red-600 hover:bg-red-600 hover:text-white transition-all font-black border border-slate-200 active:scale-95; }
+        .stepper-btn { @apply w-7 h-7 flex items-center justify-center bg-slate-100 rounded-lg text-slate-600 hover:bg-blue-600 hover:text-white transition-all font-black border border-slate-200 active:scale-95; }
         .editable-red { @apply text-red-600 font-bold; }
-        .bg-tag { @apply text-[9px] font-bold text-slate-400 mt-1 block uppercase; }
-        /* Export styling */
-        .export-only { display: none; }
-        .is-exporting .export-only { display: inline-block; }
+        .bg-tag { @apply text-[9px] font-bold text-slate-400 mt-1 block uppercase text-right; }
+        
+        .tab-container { @apply bg-slate-200/50 p-1.5 rounded-2xl flex gap-1 w-fit border border-slate-200 shadow-inner mb-2; }
+        .tab-btn { @apply px-8 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-3 min-w-[220px] justify-center; }
+        .tab-active { @apply bg-white text-slate-900 shadow-lg scale-[1.02] ring-1 ring-slate-200 !font-[900] !border-slate-900; }
+        .tab-active span.icon { @apply bg-slate-900 text-white w-6 h-6 flex items-center justify-center rounded-lg text-[10px]; }
+        .tab-inactive { @apply text-slate-500 hover:text-slate-700 hover:bg-white/50 opacity-70 grayscale font-medium; }
+        .tab-inactive span.icon { @apply bg-slate-300 text-slate-500 w-6 h-6 flex items-center justify-center rounded-lg text-[10px]; }
+
+        .matrix-cell { @apply border border-slate-100 p-1.5 text-right cursor-pointer transition-all hover:ring-2 hover:ring-blue-400 hover:z-10 relative min-w-[45px]; }
+        .matrix-cell.selected { background-color: #fde047 !important; color: #000 !important; font-weight: 900 !important; border: 2px solid #000 !important; transform: scale(1.1); z-index: 50; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .matrix-header { @apply bg-slate-50 font-black text-slate-400 p-1.5 border border-slate-200 text-center uppercase whitespace-nowrap; }
+        .matrix-row-label { @apply bg-slate-50 font-black text-slate-600 p-1.5 border border-slate-200 text-left sticky left-0 z-20; }
+
+        .export-val { display: none; }
+        .is-exporting .export-val { display: inline-block !important; @apply text-red-600 font-black; }
         .is-exporting .no-export { display: none !important; }
-        .is-exporting input[type="number"] { border: none !important; background: transparent !important; padding: 0 !important; width: auto !important; }
+        .is-exporting input, .is-exporting .stepper-btn, .is-exporting input[type="range"] { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-900">
     <div id="dashboard-content" class="max-w-7xl mx-auto bg-slate-50 p-4 rounded-xl">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 border-b border-slate-200 pb-8">
             <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="bg-blue-600 text-white text-[10px] font-black uppercase px-2 py-1 rounded">Interactive Tool</span>
+                <div class="flex items-center gap-3 mb-6">
+                    <span id="mode-badge" class="bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-1 rounded transition-all">Simulation Mode</span>
                     <h1 class="text-4xl font-black text-slate-900 tracking-tight">Financial Simulation</h1>
                 </div>
-                <p class="text-slate-500 font-medium tracking-tight">Analysis of April - June 2026</p>
+                <div class="tab-container no-export" data-html2canvas-ignore>
+                    <button onclick="switchTab('detail')" id="tab-detail" class="tab-btn tab-active"><span class="icon">📊</span> 1. Detailed Simulation</button>
+                    <button onclick="switchTab('graph')" id="tab-graph" class="tab-btn tab-inactive"><span class="icon">🎯</span> 2. Planning Matrix</button>
+                </div>
             </div>
             <div class="flex items-center gap-3">
                 <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[180px]">
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">BGN Liquidity (MTHB)</span>
                     <input type="number" id="bgn_cash_input" value="1200" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
-                </div>
-                <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[140px]">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Ticket Collection %</span>
-                    <input type="number" id="ticket_rate_input" value="50" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
+                    <span id="bgn_cash_val" class="export-val text-lg font-black"></span>
                 </div>
                 <div class="flex flex-col gap-2 no-export" data-html2canvas-ignore>
                     <div class="flex gap-2">
@@ -68,204 +79,116 @@
             </div>
         </div>
 
-        <!-- Monthly Inputs -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <!-- April -->
-            <div class="card border-t-4 border-t-blue-500">
-                <h2 class="text-lg font-black mb-6 text-slate-800">April</h2>
-                <div class="input-group">
-                    <label class="input-label">Capacity (Seats) <span id="cap_4_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
-                        <button onclick="stepCap('cap_4', -10000)" class="stepper-btn">−</button>
-                        <input type="range" id="cap_4" min="0" max="3000000" step="1000" oninput="updateDashboard()">
-                        <button onclick="stepCap('cap_4', 10000)" class="stepper-btn">+</button>
+        <div id="content-detail">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <!-- April Card -->
+                <div class="card border-t-4 border-t-blue-500 !p-5">
+                    <h2 class="text-xl font-black text-slate-800 mb-6">April</h2>
+                    <div class="input-group">
+                        <label class="input-label">Capacity (Seats) <span id="cap_4_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="stepCap('cap_4', -10000)" class="stepper-btn">−</button>
+                            <input type="range" id="cap_4" min="0" max="3000000" step="1000" oninput="updateDashboard()">
+                            <button onclick="stepCap('cap_4', 10000)" class="stepper-btn">+</button>
+                        </div>
+                        <span id="bg_4_diff" class="bg-tag"></span>
                     </div>
-                    <span id="bg_4_diff" class="bg-tag"></span>
+                    <div class="input-group">
+                        <label class="input-label">Load Factor (%) <span id="lf_4_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="step('lf_4', -0.1)" class="stepper-btn">−</button>
+                            <input type="range" id="lf_4" min="0" max="100" step="0.1" oninput="updateDashboard()">
+                            <button onclick="step('lf_4', 0.1)" class="stepper-btn">+</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fare</label><input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fare_4_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fuel</label><input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fuel_4_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Cash rev.</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="coll_4_val" class="export-val text-xs w-full text-center"></span></div>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label class="input-label">Load Factor (%) <span id="lf_4_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
-                        <button onclick="step('lf_4', -0.1)" class="stepper-btn">−</button>
-                        <input type="range" id="lf_4" min="0" max="100" step="0.1" oninput="updateDashboard()">
-                        <button onclick="step('lf_4', 0.1)" class="stepper-btn">+</button>
+                <!-- May Card -->
+                <div class="card border-t-4 border-t-indigo-500 !p-5">
+                    <h2 class="text-xl font-black text-slate-800 mb-6">May</h2>
+                    <div class="input-group">
+                        <label class="input-label">Capacity (Seats) <span id="cap_5_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="stepCap('cap_5', -10000)" class="stepper-btn">−</button>
+                            <input type="range" id="cap_5" min="0" max="3000000" step="1000" oninput="updateDashboard()">
+                            <button onclick="stepCap('cap_5', 10000)" class="stepper-btn">+</button>
+                        </div>
+                        <span id="bg_5_diff" class="bg-tag"></span>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Load Factor (%) <span id="lf_5_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="step('lf_5', -0.1)" class="stepper-btn">−</button>
+                            <input type="range" id="lf_5" min="0" max="100" step="0.1" oninput="updateDashboard()">
+                            <button onclick="step('lf_5', 0.1)" class="stepper-btn">+</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fare</label><input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fare_5_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fuel</label><input type="number" id="fuel_5" value="200" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fuel_5_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Cash rev.</label><input type="number" id="coll_5" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="coll_5_val" class="export-val text-xs w-full text-center"></span></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB) <span id="fare_4_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !py-1 no-export">
+                <!-- June Card -->
+                <div class="card border-t-4 border-t-purple-500 !p-5">
+                    <h2 class="text-xl font-black text-slate-800 mb-6">June</h2>
+                    <div class="input-group">
+                        <label class="input-label">Capacity (Seats) <span id="cap_6_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="stepCap('cap_6', -10000)" class="stepper-btn">−</button>
+                            <input type="range" id="cap_6" min="0" max="3000000" step="1000" oninput="updateDashboard()">
+                            <button onclick="stepCap('cap_6', 10000)" class="stepper-btn">+</button>
+                        </div>
+                        <span id="bg_6_diff" class="bg-tag"></span>
                     </div>
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_4_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
+                    <div class="input-group">
+                        <label class="input-label">Load Factor (%) <span id="lf_6_val" class="label-val"></span></label>
+                        <div class="flex items-center gap-3 no-export">
+                            <button onclick="step('lf_6', -0.1)" class="stepper-btn">−</button>
+                            <input type="range" id="lf_6" min="0" max="100" step="0.1" oninput="updateDashboard()">
+                            <button onclick="step('lf_6', 0.1)" class="stepper-btn">+</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fare</label><input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fare_6_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fuel</label><input type="number" id="fuel_6" value="200" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="fuel_6_val" class="export-val text-xs w-full text-center"></span></div>
+                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Cash rev.</label><input type="number" id="coll_6" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"><span id="coll_6_val" class="export-val text-xs w-full text-center"></span></div>
                     </div>
                 </div>
             </div>
-            <!-- May -->
-            <div class="card border-t-4 border-t-indigo-500">
-                <h2 class="text-lg font-black mb-6 text-slate-800">May</h2>
-                <div class="input-group">
-                    <label class="input-label">Capacity (Seats) <span id="cap_5_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
-                        <button onclick="stepCap('cap_5', -10000)" class="stepper-btn">−</button>
-                        <input type="range" id="cap_5" min="0" max="3000000" step="1000" oninput="updateDashboard()">
-                        <button onclick="stepCap('cap_5', 10000)" class="stepper-btn">+</button>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-8 space-y-8">
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="text-sm font-black uppercase tracking-tight">P&L Simulation (MTHB)</h3></div>
+                        <div class="table-container !mb-0 border-0"><table class="w-full text-left border-collapse"><thead><tr><th class="table-header w-1/3">Description</th><th class="table-header text-right">Apr</th><th class="table-header text-right">May</th><th class="table-header text-right">Jun</th><th class="table-header text-right">Total 2Q</th></tr></thead><tbody id="pl_body"></tbody></table></div>
                     </div>
-                    <span id="bg_5_diff" class="bg-tag"></span>
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Load Factor (%) <span id="lf_5_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
-                        <button onclick="step('lf_5', -0.1)" class="stepper-btn">−</button>
-                        <input type="range" id="lf_5" min="0" max="100" step="0.1" oninput="updateDashboard()">
-                        <button onclick="step('lf_5', 0.1)" class="stepper-btn">+</button>
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="text-sm font-black uppercase tracking-tight">Cashflow Position (MTHB)</h3></div>
+                        <div class="table-container !mb-0 border-0"><table class="w-full text-left border-collapse"><thead><tr><th class="table-header w-1/3">Description</th><th class="table-header text-right">Apr</th><th class="table-header text-right">May</th><th class="table-header text-right">Jun</th></tr></thead><tbody id="cf_body"></tbody></table></div>
+                    </div>
+                    <div class="card !p-0 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="text-sm font-black uppercase tracking-tight">Target for P&L Breakeven</h3></div>
+                        <div class="table-container !mb-0 border-0"><table class="w-full text-left border-collapse"><thead><tr><th class="table-header w-1/3">Breakeven Factor</th><th class="table-header text-right">Apr</th><th class="table-header text-right">May</th><th class="table-header text-right">Jun</th></tr></thead><tbody id="break_body"></tbody></table></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB) <span id="fare_5_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fare_5" oninput="updateDashboard()" class="editable-red !py-1 no-export">
-                    </div>
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_5_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fuel_5" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
-                    </div>
-                </div>
-            </div>
-            <!-- June -->
-            <div class="card border-t-4 border-t-purple-500">
-                <h2 class="text-lg font-black mb-6 text-slate-800">June</h2>
-                <div class="input-group">
-                    <label class="input-label">Capacity (Seats) <span id="cap_6_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 mb-1 no-export" data-html2canvas-ignore>
-                        <button onclick="stepCap('cap_6', -10000)" class="stepper-btn">−</button>
-                        <input type="range" id="cap_6" min="0" max="3000000" step="1000" oninput="updateDashboard()">
-                        <button onclick="stepCap('cap_6', 10000)" class="stepper-btn">+</button>
-                    </div>
-                    <span id="bg_6_diff" class="bg-tag"></span>
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Load Factor (%) <span id="lf_6_val" class="label-val"></span></label>
-                    <div class="flex items-center gap-3 no-export" data-html2canvas-ignore>
-                        <button onclick="step('lf_6', -0.1)" class="stepper-btn">−</button>
-                        <input type="range" id="lf_6" min="0" max="100" step="0.1" oninput="updateDashboard()">
-                        <button onclick="step('lf_6', 0.1)" class="stepper-btn">+</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fare (THB) <span id="fare_6_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fare_6" oninput="updateDashboard()" class="editable-red !py-1 no-export">
-                    </div>
-                    <div class="input-group mb-0">
-                        <label class="input-label !mb-1">Fuel (USD/bbl) <span id="fuel_6_val" class="label-val export-only"></span></label>
-                        <input type="number" id="fuel_6" value="200" oninput="updateDashboard()" class="editable-red !py-1 no-export">
-                    </div>
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="card h-fit"><h3 class="text-xs font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Profitability Margins (%)</h3><div class="relative h-64"><canvas id="marginChart"></canvas></div></div>
+                    <div class="card h-fit"><h3 class="text-xs font-black mb-6 text-slate-400 uppercase tracking-widest text-center">End Cash Balance (MTHB)</h3><div class="relative h-64"><canvas id="cashChart"></canvas></div></div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-8 space-y-8">
-                <!-- P&L Table -->
-                <div class="card !p-0 overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">P&L Simulation (MTHB) (press + to see breakdown)</h3>
-                    </div>
-                    <div class="table-container">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr>
-                                    <th class="table-header w-1/3">Description</th>
-                                    <th class="table-header text-right">Apr</th>
-                                    <th class="table-header text-right">May</th>
-                                    <th class="table-header text-right">Jun</th>
-                                    <th class="table-header text-right">Total 2Q</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pl_body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Cashflow Table -->
-                <div class="card !p-0 overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Cashflow Position (MTHB)</h3>
-                    </div>
-                    <div class="table-container">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr>
-                                    <th class="table-header w-1/3">Description</th>
-                                    <th class="table-header text-right">Apr</th>
-                                    <th class="table-header text-right">May</th>
-                                    <th class="table-header text-right">Jun</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cf_body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Breakeven & Model Logic -->
-                <div class="card !p-0 overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 bg-slate-50">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Target for P&L Breakeven</h3>
-                    </div>
-                    <div class="table-container !mb-0 border-0">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr>
-                                    <th class="table-header w-1/3">Breakeven Factor</th>
-                                    <th class="table-header text-right">Apr</th>
-                                    <th class="table-header text-right">May</th>
-                                    <th class="table-header text-right">Jun</th>
-                                </tr>
-                            </thead>
-                            <tbody id="break_body"></tbody>
-                        </table>
-                    </div>
-                    <div class="p-4 bg-slate-50 border-t border-slate-200">
-                        <div class="flex items-center cursor-pointer group" onclick="toggleBreakdown('ass')">
-                            <span class="expand-btn" id="btn-ass">+</span>
-                            <span class="text-xs font-black text-slate-500 uppercase tracking-widest group-hover:text-blue-600 transition-colors">Model Assumptions & Scaling Logic</span>
-                        </div>
-                        <div id="ass_content" class="breakdown-row breakdown-ass mt-4" style="display: none;">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-white p-3 rounded border border-slate-200">
-                                    <div class="text-[10px] font-black text-blue-600 uppercase mb-1">Variable Items (100% Scaled)</div>
-                                    <div class="text-[11px] text-slate-500">Fuel, User Charges, Station Fees, Inflight Meals. Scales with Capacity (Seats).</div>
-                                </div>
-                                <div class="bg-white p-3 rounded border border-slate-200">
-                                    <div class="text-[10px] font-black text-indigo-600 uppercase mb-1">Semi-Fixed</div>
-                                    <div class="text-[11px] text-slate-500">Salaries (COS) and RAMP costs - 20% remains fixed. Sales and dist. - 3% of revenue. Other costs of sales - 10% fixed. Publicity, ad and promotion - 1-2% of revenue.</div>
-                                </div>
-                                <div class="bg-white p-3 rounded border border-slate-200">
-                                    <div class="text-[10px] font-black text-slate-600 uppercase mb-1">Fixed Items (100% Fixed)</div>
-                                    <div class="text-[11px] text-slate-500">Rental of aircrafts, Maintenance, OPEX, Interest, and D&A.</div>
-                                </div>
-                                <div class="bg-white p-3 rounded border border-slate-200">
-                                    <div class="text-[10px] font-black text-emerald-600 uppercase mb-1">Cash Logic</div>
-                                    <div class="text-[11px] text-slate-500">Collection at variable rate of Net Revenue. Debenture inflow in June. Maintence pays only flown capacity, assuming op. fleet operated at existing util rate. Fee fixed 50 MTHB, the rest is brand license, assumed not paid.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div id="content-graph" style="display: none;">
+            <div class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-black text-slate-900">Strategic Planning Matrix</h2><p class="text-slate-500 text-sm">Analyze cumulative liquidity impact across scenarios.</p></div>
+                <button onclick="applyMatrixToDetail()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-black transition-all active:scale-95 flex items-center gap-2"><span>🚀</span> Apply Selected Scenarios</button>
             </div>
-
-            <!-- Right Charts Column -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="card h-fit">
-                    <h3 class="text-xs font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Profitability Margins (%)</h3>
-                    <div class="relative h-64"><canvas id="marginChart"></canvas></div>
-                </div>
-                <div class="card h-fit">
-                    <h3 class="text-xs font-black mb-6 text-slate-400 uppercase tracking-widest text-center">End Cash Balance (MTHB)</h3>
-                    <div class="relative h-64"><canvas id="cashChart"></canvas></div>
-                </div>
-            </div>
+            <div id="matrix-container" class="space-y-16"></div>
         </div>
     </div>
 
@@ -274,127 +197,121 @@
         const data = {"13": {"J": 4028998382.0, "K": 3454547006.0, "L": 2830765813.0}, "27": {"J": 640871090.8, "K": 617327361.4, "L": 578925899.8}, "49": {"J": 6621629.6, "K": 6275768.7, "L": 5777752.5}, "60": {"J": 13374694.1, "K": 13587809.6, "L": 13083174.0}, "63": {"J": 1554220.6, "K": 1385200.5, "L": 1231277.0}, "65": {"J": 1499316.6, "K": 1336267.3, "L": 1187781.3}, "86": {"J": 24146303.2, "K": 21822549.0, "L": 20886651.0}, "110": {"J": 0, "K": 0, "L": 0}, "112": {"J": 491354228.9, "K": 476720113.9, "L": 487420264.3}, "134": {"J": 2649081022.7, "K": 2538837045.2, "L": 2346385759.5}, "138": {"J": 368904874.9, "K": 364015769.8, "L": 339766780.0}, "149": {"J": 698736062.6, "K": 692265900.6, "L": 705689966.0}, "189": {"J": 24017634.4, "K": 21811041.0, "L": 21924784.9}, "214": {"J": 121919786.4, "K": 103212626.3, "L": 92570821.2}, "238": {"J": 108076964.5, "K": 109904078.5, "L": 105091539.6}, "256": {"J": 35548399.1, "K": 35321931.5, "L": 35182249.3}, "292": {"J": 44593798.2, "K": 44458440.2, "L": 45163933.5}, "314": {"J": 56677758.8, "K": 54017397.3, "L": 56434879.8}, "347": {"J": 2912079.0, "K": 15000.0, "L": 16959614.0}, "361": {"J": 111551208.9, "K": 95653918.7, "L": 88256220.3}, "378": {"J": 66037754.3, "K": 49863579.6, "L": 55125168.1}, "417": {"J": 950643.0, "K": 1406938.0, "L": 1598583.0}, "434": {"J": 0, "K": 0, "L": 0}, "445": {"J": 436497689.9, "K": 449920002.2, "L": 446073331.3}, "480": {"J": 213485486.2, "K": 208676981.9, "L": 189031366.5}, "474": {"J": -3697744.5, "K": -3697744.5, "L": -3697744.5}, "492": {"J": 4425581.2, "K": 3887767.3, "L": 3702623.0}, "503": {"J": -5947735.7, "K": -4638450.9, "L": -4187725.0}, "523": {"J": -136611971.2, "K": -219364990.0, "L": -310326813.2}, "535": {"J": 2327268, "K": 2234796, "L": 2046584}};
 
         let cashChart, marginChart;
-        let ticketCollectionRate = 50;
+        let selectedMatrix = { 4: null, 5: null, 6: null };
         let breakdownState = { rev: false, cogs: false, opex: false, nop: false, cin: false, cout: false, ass: false };
         const budgetedSeats = { 4: 2391000, 5: 2179000, 6: 1962000 };
 
-        function step(id, delta) {
-            const input = document.getElementById(id);
-            input.value = Math.max(0, Math.min(100, parseFloat(input.value) + delta)).toFixed(1);
-            updateDashboard();
+        function switchTab(tab) {
+            document.getElementById('content-detail').style.display = tab === 'detail' ? 'block' : 'none';
+            document.getElementById('content-graph').style.display = tab === 'graph' ? 'block' : 'none';
+            const detailBtn = document.getElementById('tab-detail'), graphBtn = document.getElementById('tab-graph'), badge = document.getElementById('mode-badge');
+            if (tab === 'detail') { detailBtn.className = 'tab-btn tab-active'; graphBtn.className = 'tab-btn tab-inactive'; badge.innerText = 'Simulation Mode'; }
+            else { detailBtn.className = 'tab-btn tab-inactive'; graphBtn.className = 'tab-btn tab-active'; badge.innerText = 'Strategic Planning'; renderAllMatrices(); }
         }
 
-        function stepCap(id, delta) {
-            const input = document.getElementById(id);
-            input.value = Math.max(0, parseFloat(input.value) + delta);
-            updateDashboard();
+        function renderAllMatrices() {
+            const container = document.getElementById('matrix-container'); container.innerHTML = '';
+            [4, 5, 6].forEach(id => {
+                const mName = id === 4 ? 'April' : (id === 5 ? 'May' : 'June'), mColor = id === 4 ? 'blue' : (id === 5 ? 'indigo' : 'purple'), cap = parseFloat(document.getElementById(`cap_${id}`).value);
+                const div = document.createElement('div');
+                div.innerHTML = `<div class="flex items-center gap-4 mb-4"><h3 class="text-xl font-black text-${mColor}-600">${mName}</h3><span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">${cap.toLocaleString()} SEATS FIXED</span></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8"><div class="lg:col-span-8 card overflow-hidden !p-0 border-t-4 border-t-emerald-500"><div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-[10px] uppercase text-slate-500">Profit Matrix (NPAT MTHB)</div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_npat_${id}"></table></div></div><div class="lg:col-span-4 card overflow-hidden !p-0 border-t-4 border-t-blue-500"><div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-[10px] uppercase text-blue-600 flex justify-between"><span>Ending Cash Balance</span><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-bold">${id === 4 ? 'Incl. BGN Cash' : 'Cumulative'}</span></div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_cash_${id}"></table></div></div></div>`;
+                container.appendChild(div); buildMatrix(id, cap, 'npat', `matrix_npat_${id}`); buildMatrix(id, cap, 'cash', `matrix_cash_${id}`);
+            });
         }
 
-        function toggleBreakdown(id) {
-            breakdownState[id] = !breakdownState[id];
-            updateDashboard();
+        function getPrevMonthEndCash(month) {
+            const bgnCash = parseFloat(document.getElementById('bgn_cash_input').value) || 0;
+            if (month === 4) return bgnCash;
+            const r4 = calc(4, 'J'); const end4 = bgnCash + (r4.cin - r4.cout)/1e6;
+            if (month === 5) return end4;
+            const r5 = calc(5, 'K'); return end4 + (r5.cin - r5.cout)/1e6;
         }
 
-        function resetInputs() {
-            document.getElementById('cap_4').value = 2327000; document.getElementById('lf_4').value = 84.3; document.getElementById('fare_4').value = 2055; document.getElementById('fuel_4').value = 200;
-            document.getElementById('cap_5').value = 2235000; document.getElementById('lf_5').value = 82.3; document.getElementById('fare_5').value = 1881; document.getElementById('fuel_5').value = 200;
-            document.getElementById('cap_6').value = 2047000; document.getElementById('lf_6').value = 81.7; document.getElementById('fare_6').value = 1693; document.getElementById('fuel_6').value = 200;
-            document.getElementById('bgn_cash_input').value = 1200;
-            ticketCollectionRate = 50;
-            document.getElementById('ticket_rate_input').value = 50;
-            updateDashboard();
+        function buildMatrix(month, cap, mode, containerId) {
+            const container = document.getElementById(containerId), dataCol = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'), fuelPrice = parseFloat(document.getElementById(`fuel_${month}`).value) || 200, prevCash = getPrevMonthEndCash(month);
+            if (mode === 'npat') {
+                const fares = []; for (let f = 5000; f >= 1800; f -= 400) fares.push(f);
+                const lfs = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100], coll = parseFloat(document.getElementById(`coll_${month}`).value) || 50;
+                let html = `<thead><tr><th class="matrix-header sticky left-0 z-30 text-[8px]">Fare \\ LF</th>`;
+                lfs.forEach(l => html += `<th class="matrix-header">${l}%</th>`);
+                html += `</tr></thead><tbody>`;
+                fares.forEach(f => {
+                    html += `<tr><td class="matrix-row-label !text-[8px]">${f.toLocaleString()}</td>`;
+                    lfs.forEach(l => {
+                        const val = calcWithParams(month, dataCol, cap, l/100, f, fuelPrice, coll).npat / 1e6;
+                        const isS = selectedMatrix[month] && selectedMatrix[month].f === f && selectedMatrix[month].l === l;
+                        html += `<td class="matrix-cell ${isS ? 'selected' : ''}" onclick="selectScenario(${month}, ${f}, ${l}, null)" style="background-color: rgba(${val > 0 ? '16, 185, 129' : '239, 68, 68'}, ${0.1 + Math.min(0.4, Math.abs(val)/2000)})">${Math.round(val).toLocaleString()}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                container.innerHTML = html + `</tbody>`;
+            } else {
+                const colls = [40, 50, 60, 70, 80, 90, 100], f = parseFloat(document.getElementById(`fare_${month}`).value), l = parseFloat(document.getElementById(`lf_${month}`).value);
+                let html = `<thead><tr><th class="matrix-header sticky left-0 z-30 text-[8px]">Coll%</th>`;
+                colls.forEach(c => html += `<th class="matrix-header">${c}%</th>`);
+                html += `</tr></thead><tbody><tr><td class="matrix-row-label !text-[8px]">BAL.</td>`;
+                colls.forEach(c => {
+                    let val = (calcWithParams(month, dataCol, cap, l/100, f, fuelPrice, c).netCash / 1e6) + prevCash;
+                    const isS = selectedMatrix[month] && selectedMatrix[month].c === c;
+                    html += `<td class="matrix-cell ${isS ? 'selected' : ''}" onclick="selectScenario(${month}, null, null, ${c})" style="background-color: rgba(${val > 0 ? '16, 185, 129' : '239, 68, 68'}, ${0.1 + Math.min(0.4, Math.abs(val)/2000)})">${Math.round(val).toLocaleString()}</td>`;
+                });
+                container.innerHTML = html + `</tr></tbody>`;
+            }
         }
 
-        function scale(val, bCap, cCap, s) {
-            return ((1 - (s || 0)) * val * (cCap / bCap)) + ((s || 0) * val);
+        function selectScenario(month, f, l, c) {
+            if (!selectedMatrix[month]) selectedMatrix[month] = {};
+            if (f !== null) selectedMatrix[month].f = f; if (l !== null) selectedMatrix[month].l = l; if (c !== null) selectedMatrix[month].c = c;
+            renderAllMatrices();
+        }
+
+        function applyMatrixToDetail() {
+            [4, 5, 6].forEach(m => { if (selectedMatrix[m]) {
+                if (selectedMatrix[m].f) document.getElementById(`fare_${m}`).value = selectedMatrix[m].f;
+                if (selectedMatrix[m].l) document.getElementById(`lf_${m}`).value = selectedMatrix[m].l;
+                if (selectedMatrix[m].c) document.getElementById(`coll_${m}`).value = selectedMatrix[m].c;
+            }});
+            updateDashboard(); switchTab('detail'); showToast('🚀 Monthly Strategy Applied');
+        }
+
+        function showToast(msg) { const t = document.createElement('div'); t.className = 'fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-2xl z-50 animate-bounce border border-slate-700'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
+
+        function calcWithParams(id, col, cCap, cLF, cFare, fP, collRate) {
+            const bCap = data[535][col], cPax = cCap * cLF, sched = cPax * cFare, anc = [27, 49, 60, 63, 65].reduce((a, r) => a + scale(data[r][col], bCap, cCap, 0), 0), oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
+            const cogs = { rnt: scale(data[110][col], bCap, cCap, 1), sal: scale(data[112][col], bCap, cCap, 0.2), fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), usr: scale(data[138][col], bCap, cCap, 0), mnt: scale(data[149][col], bCap, cCap, 1), mls: scale(data[189][col], bCap, cCap, 0), dst: netRev * 0.03, rmp: scale(data[238][col], bCap, cCap, 0.2), ocs: scale(data[256][col], bCap, cCap, 0.1) };
+            const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0), opex = { sal: scale(data[292][col], bCap, cCap, 1), prm: (data[314].J / 4717065636) * netRev, ins: scale(data[347][col], bCap, cCap, 1), fee: 50e6 + (0.012 * netRev), ga: scale(data[378][col], bCap, cCap, 1), ope: scale(data[417][col], bCap, cCap, 1), srv: scale(data[434][col], bCap, cCap, 1) };
+            const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0), dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col], bCap, cCap, 1) + scale(data[480][col], bCap, cCap, 1) + scale(data[492][col], bCap, cCap, 1), nop = (netRev - totCOGS) - totOPEX - dep - netInt, fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1), npat = nop - fx - tax;
+            const cin = (netRev * (collRate / 100)) + (id === 6 ? 1500e6 : 0), coMnt = (cCap / 2391000) * data[149][col], cout = cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
+            return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop, fx, tax, npat, cin, deb: (id===6 ? 1500e6 : 0), cout, coMaint: coMnt, netInt, beFare: 0, beLF: 0, bgDiff: ((cCap/budgetedSeats[id])-1)*100 };
         }
 
         function calc(id, col) {
-            const bCap = data[535][col], cCap = parseFloat(document.getElementById(`cap_${id}`).value), cLF = parseFloat(document.getElementById(`lf_${id}`).value) / 100, cFare = parseFloat(document.getElementById(`fare_${id}`).value), fP = parseFloat(document.getElementById(`fuel_${id}`).value), cPax = cCap * cLF;
-            const sched = cPax * cFare, anc = [27, 49, 60, 63, 65].reduce((a, r) => a + scale(data[r][col], bCap, cCap, 0), 0), oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
-            const cogs = { rnt: scale(data[110][col], bCap, cCap, 1), sal: scale(data[112][col], bCap, cCap, 0.2), fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), usr: scale(data[138][col], bCap, cCap, 0), mnt: scale(data[149][col], bCap, cCap, 1), mls: scale(data[189][col], bCap, cCap, 0), dst: netRev * 0.03, rmp: scale(data[238][col], bCap, cCap, 0.2), ocs: scale(data[256][col], bCap, cCap, 0.1) };
-            const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0);
-            const opex = { sal: scale(data[292][col], bCap, cCap, 1), prm: (data[314].J / 4717065636) * netRev, ins: scale(data[347][col], bCap, cCap, 1), fee: 50e6 + (0.012 * netRev), ga: scale(data[378][col], bCap, cCap, 1), ope: scale(data[417][col], bCap, cCap, 1), srv: scale(data[434][col], bCap, cCap, 1) };
-            const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0);
-            const dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col], bCap, cCap, 1) + scale(data[480][col], bCap, cCap, 1) + scale(data[492][col], bCap, cCap, 1);
-            const nop = (netRev - totCOGS) - totOPEX - dep - netInt;
-            const fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1), npat = nop - fx - tax;
-            const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (ticketCollectionRate / 100)) + deb, coMnt = (cCap / 2391000) * data[149][col];
-            const cout = cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
-            
-            const otherCOGS = totCOGS - cogs.dst, otherRev = netRev - sched, rhs = (otherCOGS + totOPEX + dep + netInt + fx + tax) - (otherRev * 0.97);
-            const beFare = rhs / (Math.max(1, cCap * cLF) * 0.97), beLF = rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff = ((cCap / budgetedSeats[id]) - 1) * 100;
-            return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop, fx, tax, npat, cin, deb, cout, coMaint: coMnt, netInt, beFare, beLF, bgDiff };
+            const bCap = data[535][col], cCap = parseFloat(document.getElementById(`cap_${id}`).value), cLF = parseFloat(document.getElementById(`lf_${id}`).value) / 100, cFare = parseFloat(document.getElementById(`fare_${id}`).value), fP = parseFloat(document.getElementById(`fuel_${id}`).value), collRate = parseFloat(document.getElementById(`coll_${id}`).value) || 50;
+            return calcWithParams(id, col, cCap, cLF, cFare, fP, collRate);
         }
-
-        function updateDashboard() {
-    const ticketRateInput = document.getElementById('ticket_rate_input');
-    if (ticketRateInput) ticketCollectionRate = parseFloat(ticketRateInput.value) || 0;
-
-    const res = { 4: calc(4, 'J'), 5: calc(5, 'K'), 6: calc(6, 'L') };
-    renderPL(res);
-    renderCF(res);
-    renderBreak(res);
-    renderCharts(res);
-
-    ['4','5','6'].forEach(id => {
-        document.getElementById(`cap_${id}_val`).innerText =
-            parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
-
-        document.getElementById(`lf_${id}_val`).innerText =
-            document.getElementById(`lf_${id}`).value + '%';
-        
-        // Add Fare and Fuel span updates
-        document.getElementById(`fare_${id}_val`).innerText = 
-            parseFloat(document.getElementById(`fare_${id}`).value).toLocaleString();
-        document.getElementById(`fuel_${id}_val`).innerText = 
-            parseFloat(document.getElementById(`fuel_${id}`).value).toLocaleString();
-
-        const d = res[id].bgDiff;
-        const bgDiffEl = document.getElementById(`bg_${id}_diff`);
-        bgDiffEl.innerText = (d >= 0 ? '+' : '') + Math.round(d) + '% FROM BG';
-        bgDiffEl.style.fontSize = '0.8em'; // smaller than surrounding text
-    });
-
-    document.getElementById('ass_content').style.display = breakdownState.ass ? 'block' : 'none';
-    document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+';
-}
 
         const f = (v) => (v / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
         const subVal = (res, k, s) => res[4][k][s] + res[5][k][s] + res[6][k][s];
 
         function renderPL(res) {
-            const tot = (k) => res[4][k] + res[5][k] + res[6][k];
-            const disp = (id) => breakdownState[id] ? 'table-row' : 'none';
-            const btn = (id) => breakdownState[id] ? '–' : '+';
+            const tot = (k) => res[4][k] + res[5][k] + res[6][k]; const disp = (id) => breakdownState[id] ? 'table-row' : 'none'; const btn = (id) => breakdownState[id] ? '–' : '+';
             document.getElementById('pl_body').innerHTML = `
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('rev')">${btn('rev')}</span>Net Revenue</td><td class="table-cell text-right">${f(res[4].netRev)}</td><td class="table-cell text-right">${f(res[5].netRev)}</td><td class="table-cell text-right">${f(res[6].netRev)}</td><td class="table-cell text-right total-col font-bold">${f(tot('netRev'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td><td class="breakdown-cell text-right total-col">${f(tot('sched'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary & Other</td><td class="breakdown-cell text-right">${f(res[4].anc+res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].anc+res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].anc+res[6].oinc)}</td><td class="breakdown-cell text-right total-col">${f(tot('anc')+tot('oinc'))}</td></tr>
                 
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental of aircrafts</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','rnt'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','sal'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','sal'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','fuel'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">User Charges & Stations</td><td class="breakdown-cell text-right">${f(res[4].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.usr)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','usr'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Maintenance & Overhaul</td><td class="breakdown-cell text-right">${f(res[4].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mnt)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','mnt'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Meals & Merchandise</td><td class="breakdown-cell text-right">${f(res[4].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mls)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','mls'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Sales & Distribution</td><td class="breakdown-cell text-right">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.dst)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','dst'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">RAMP Operational costs</td><td class="breakdown-cell text-right">${f(res[4].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rmp)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','rmp'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Other cost of sales</td><td class="breakdown-cell text-right">${f(res[4].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.ocs)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'cogs','ocs'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Other COGS</td><td class="breakdown-cell text-right">${f(res[4].totCOGS - res[4].cogs.sal - res[4].cogs.fuel - res[4].cogs.mnt - res[4].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[5].totCOGS - res[5].cogs.sal - res[5].cogs.fuel - res[5].cogs.mnt - res[5].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[6].totCOGS - res[6].cogs.sal - res[6].cogs.fuel - res[6].cogs.mnt - res[6].cogs.usr)}</td><td class="breakdown-cell text-right total-col">${f(tot('totCOGS') - subVal(res,'cogs','sal') - subVal(res,'cogs','fuel') - subVal(res,'cogs','mnt') - subVal(res,'cogs','usr'))}</td></tr>
 
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('opex')">${btn('opex')}</span>OPEX</td><td class="table-cell text-right negative">${f(res[4].totOPEX)}</td><td class="table-cell text-right negative">${f(res[5].totOPEX)}</td><td class="table-cell text-right negative">${f(res[6].totOPEX)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totOPEX'))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Salaries & wages</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','sal'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Pub, Ad, Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','prm'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Insurance</td><td class="breakdown-cell text-right">${f(res[4].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ins)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','ins'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Fees</td><td class="breakdown-cell text-right">${f(res[4].opex.fee)}</td><td class="breakdown-cell text-right">${f(res[5].opex.fee)}</td><td class="breakdown-cell text-right">${f(res[6].opex.fee)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','fee'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">General & administrative</td><td class="breakdown-cell text-right">${f(res[4].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ga)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','ga'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Other operating expenses</td><td class="breakdown-cell text-right">${f(res[4].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ope)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','ope'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Services sold/ purchased</td><td class="breakdown-cell text-right">${f(res[4].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[5].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[6].opex.srv)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','srv'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td><td class="breakdown-cell text-right total-col">${f(subVal(res,'opex','prm'))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Other OPEX</td><td class="breakdown-cell text-right">${f(res[4].totOPEX - res[4].opex.sal - res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].totOPEX - res[5].opex.sal - res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].totOPEX - res[6].opex.sal - res[6].opex.prm)}</td><td class="breakdown-cell text-right total-col">${f(tot('totOPEX') - subVal(res,'opex','sal') - subVal(res,'opex','prm'))}</td></tr>
 
-                <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('nop')">${btn('nop')}</span>Net Operating Income</td><td class="table-cell text-right font-bold">${f(res[4].nop)}</td><td class="table-cell text-right font-bold">${f(res[5].nop)}</td><td class="table-cell text-right font-bold">${f(res[6].nop)}</td><td class="table-cell text-right total-col font-bold">${f(tot('nop'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">FX - Realised Portion</td><td class="breakdown-cell text-right">${f(res[4].fx)}</td><td class="breakdown-cell text-right">${f(res[5].fx)}</td><td class="breakdown-cell text-right">${f(res[6].fx)}</td><td class="breakdown-cell text-right total-col">${f(tot('fx'))}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('nop')};"><td class="breakdown-cell">Taxation</td><td class="breakdown-cell text-right">${f(res[4].tax)}</td><td class="breakdown-cell text-right">${f(res[5].tax)}</td><td class="breakdown-cell text-right">${f(res[6].tax)}</td><td class="breakdown-cell text-right total-col">${f(tot('tax'))}</td></tr>
                 <tr class="bg-blue-50/50"><td class="table-cell font-black">Profit After Tax (NPAT)</td><td class="table-cell text-right font-black text-blue-700">${f(res[4].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[5].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[6].npat)}</td><td class="table-cell text-right total-col font-black text-blue-700">${f(tot('npat'))}</td></tr>
             `;
         }
@@ -402,158 +319,66 @@
         function renderCF(res) {
             const b = parseFloat(document.getElementById('bgn_cash_input').value);
             let c4 = b + (res[4].cin - res[4].cout)/1e6, c5 = c4 + (res[5].cin - res[5].cout)/1e6, c6 = c5 + (res[6].cin - res[6].cout)/1e6;
-            const disp = (id) => breakdownState[id] ? 'table-row' : 'none';
-            const btn = (id) => breakdownState[id] ? '–' : '+';
+            const disp = (id) => breakdownState[id] ? 'table-row' : 'none'; const btn = (id) => breakdownState[id] ? '–' : '+';
             document.getElementById('cf_body').innerHTML = `
                 <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right font-bold">${f(b*1e6)}</td><td class="table-cell text-right font-bold">${f(c4*1e6)}</td><td class="table-cell text-right font-bold">${f(c5*1e6)}</td></tr>
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[6].cin)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600">Ticket Collection</td><td class="breakdown-cell text-right">${f(res[4].cin - (res[4].deb||0))}</td><td class="breakdown-cell text-right">${f(res[5].cin - (res[5].deb||0))}</td><td class="breakdown-cell text-right">${f(res[6].cin - (res[6].deb||0))}</td></tr>
+                <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600">Cash revenue collection</td><td class="breakdown-cell text-right">${f(res[4].cin - (res[4].deb||0))}</td><td class="breakdown-cell text-right">${f(res[5].cin - (res[5].deb||0))}</td><td class="breakdown-cell text-right">${f(res[6].cin - (res[6].deb||0))}</td></tr>
                 <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">${f(res[6].deb)}</td></tr>
                 <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative font-bold">${f(res[4].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[5].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[6].cout)}</td></tr>
-                
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">User Charges & Stations</td><td class="breakdown-cell text-right">${f(res[4].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.usr)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Maintenance (Op. Fleet)</td><td class="breakdown-cell text-right">${f(res[4].coMaint)}</td><td class="breakdown-cell text-right">${f(res[5].coMaint)}</td><td class="breakdown-cell text-right">${f(res[6].coMaint)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Meals & Merchandise</td><td class="breakdown-cell text-right">${f(res[4].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mls)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Sales & Distribution</td><td class="breakdown-cell text-right">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.dst)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">RAMP Operational costs</td><td class="breakdown-cell text-right">${f(res[4].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rmp)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other cost of sales</td><td class="breakdown-cell text-right">${f(res[4].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.ocs)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & wages</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Insurance</td><td class="breakdown-cell text-right">${f(res[4].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ins)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fee</td><td class="breakdown-cell text-right">${f(50e6)}</td><td class="breakdown-cell text-right">${f(50e6)}</td><td class="breakdown-cell text-right">${f(50e6)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">General & administrative</td><td class="breakdown-cell text-right">${f(res[4].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ga)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other operating expenses</td><td class="breakdown-cell text-right">${f(res[4].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ope)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ope)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Services sold/ purchased</td><td class="breakdown-cell text-right">${f(res[4].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[5].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[6].opex.srv)}</td></tr>
-                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest expense</td><td class="breakdown-cell text-right">${f(res[4].netInt)}</td><td class="breakdown-cell text-right">${f(res[5].netInt)}</td><td class="breakdown-cell text-right">${f(res[6].netInt)}</td></tr>
-
+                <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Operating Outflow</td><td class="breakdown-cell text-right">${f(res[4].cout)}</td><td class="breakdown-cell text-right">${f(res[5].cout)}</td><td class="breakdown-cell text-right">${f(res[6].cout)}</td></tr>
                 <tr class="bg-emerald-50/50"><td class="table-cell font-black text-emerald-700">Ending Cash Balance</td><td class="table-cell text-right font-black text-emerald-700">${f(c4*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c5*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c6*1e6)}</td></tr>
             `;
         }
 
         function renderBreak(res) {
             let h1 = '', h2 = '';
-            ['4','5','6'].forEach(id => {
-                h1 += `<td class="table-cell text-right font-mono text-xs text-blue-600 font-bold">${Math.round(res[id].beFare).toLocaleString()} THB</td>`;
-                h2 += `<td class="table-cell text-right font-mono text-xs text-indigo-600 font-bold">${(res[id].beLF*100).toFixed(1)}%</td>`;
-            });
-            document.getElementById('break_body').innerHTML = `
-                <tr><td class="table-cell font-black">Avg Fare Breakeven (at current LF)</td>${h1}</tr>
-                <tr><td class="table-cell font-black">Load Factor Breakeven (at current Fare)</td>${h2}</tr>
-            `;
+            ['4','5','6'].forEach(id => { h1 += `<td class="table-cell text-right font-mono text-xs text-blue-600 font-bold">${Math.round(res[id].beFare).toLocaleString()} THB</td>`; h2 += `<td class="table-cell text-right font-mono text-xs text-indigo-600 font-bold">${(res[id].beLF*100).toFixed(1)}%</td>`; });
+            document.getElementById('break_body').innerHTML = `<tr><td class="table-cell font-black">Avg Fare Breakeven (at current LF)</td>${h1}</tr><tr><td class="table-cell font-black">Load Factor Breakeven (at current Fare)</td>${h2}</tr>`;
         }
 
         function renderCharts(res) {
             const ctx1 = document.getElementById('marginChart').getContext('2d'), ctx2 = document.getElementById('cashChart').getContext('2d');
-            const m = [res[4].npat/res[4].netRev*100, res[5].npat/res[5].netRev*100, res[6].npat/res[6].netRev*100];
-            if (marginChart) marginChart.destroy();
-            marginChart = new Chart(ctx1, { type: 'bar', data: { labels: ['Apr', 'May', 'Jun'], datasets: [{ data: m, backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { maintainAspectRatio: false, plugins: { datalabels: { anchor: 'end', align: 'top', offset: 2, color: '#666', font: { size: 10, weight: 'bold' }, formatter: v => v.toFixed(1)+'%' }, legend: { display: false } }, layout: { padding: { top: 30 } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } } });
-
             const b = parseFloat(document.getElementById('bgn_cash_input').value);
-            const d = [b, b + (res[4].cin - res[4].cout)/1e6, b + (res[4].cin - res[4].cout + res[5].cin - res[5].cout)/1e6, b + (res[4].cin - res[4].cout + res[5].cin - res[5].cout + res[6].cin - res[6].cout)/1e6];
+            const d = [b, b + (res[4].cin-res[4].cout)/1e6, b + (res[4].cin-res[4].cout+res[5].cin-res[5].cout)/1e6, b + (res[4].cin-res[4].cout+res[5].cin-res[5].cout+res[6].cin-res[6].cout)/1e6];
             if (cashChart) cashChart.destroy();
-            cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { maintainAspectRatio: false, plugins: { datalabels: { anchor: 'end', align: 'top', offset: 2, color: '#2563eb', font: { size: 10, weight: 'bold' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, layout: { padding: { top: 30 } }, scales: { y: { grid: { display: false } }, x: { grid: { display: false } } } } });
+            cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4 }] }, options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            if (marginChart) marginChart.destroy();
+            marginChart = new Chart(ctx1, { type: 'bar', data: { labels: ['Apr', 'May', 'Jun'], datasets: [{ data: [res[4].npat/res[4].netRev*100, res[5].npat/res[5].netRev*100, res[6].npat/res[6].netRev*100], backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
         }
 
-        function exportToImage() {
-            document.body.classList.add('is-exporting');
-            const dashboard = document.getElementById('dashboard-content');
-            // Give a tiny moment for styles to apply
-            setTimeout(async () => {
-                const canvas = await html2canvas(dashboard, { 
-                    scale: 2, 
-                    backgroundColor: '#f8fafc',
-                    useCORS: true,
-                    logging: false
+        function updateDashboard() {
+            try {
+                const res = { 4: calc(4, 'J'), 5: calc(5, 'K'), 6: calc(6, 'L') };
+                renderPL(res); renderCF(res); renderBreak(res); renderCharts(res);
+                ['4','5','6'].forEach(id => {
+                    const cV = document.getElementById(`cap_${id}_val`), lV = document.getElementById(`lf_${id}_val`), fV = document.getElementById(`fare_${id}_val`), fuelV = document.getElementById(`fuel_${id}_val`), collV = document.getElementById(`coll_${id}_val`), bgD = document.getElementById(`bg_${id}_diff`);
+                    if(cV) cV.innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
+                    if(lV) lV.innerText = document.getElementById(`lf_${id}`).value + '%';
+                    if(fV) fV.innerText = parseFloat(document.getElementById(`fare_${id}`).value).toLocaleString();
+                    if(fuelV) fuelV.innerText = parseFloat(document.getElementById(`fuel_${id}`).value).toLocaleString();
+                    if(collV) collV.innerText = document.getElementById(`coll_${id}`).value + '%';
+                    if(bgD) bgD.innerText = (res[id].bgDiff >= 0 ? '+' : '') + Math.round(res[id].bgDiff) + '% FROM BG';
                 });
-                
-                const link = document.createElement('a');
-                link.download = 'Financial_Simulation_2Q2026.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                document.body.classList.remove('is-exporting');
-            }, 100);
+                const bgnV = document.getElementById('bgn_cash_val');
+                if(bgnV) bgnV.innerText = parseFloat(document.getElementById('bgn_cash_input').value).toLocaleString();
+            } catch (e) { console.error(e); }
         }
 
-        function saveScenario() {
-            const inputs = {
-                cap: [4,5,6].map(m => document.getElementById(`cap_${m}`).value),
-                lf: [4,5,6].map(m => document.getElementById(`lf_${m}`).value),
-                fare: [4,5,6].map(m => document.getElementById(`fare_${m}`).value),
-                fuel: [4,5,6].map(m => document.getElementById(`fuel_${m}`).value),
-                bgn_cash: document.getElementById('bgn_cash_input').value,
-                ticket_rate: document.getElementById('ticket_rate_input').value
-            };
-            localStorage.setItem('fin_sim_scenario', JSON.stringify(inputs));
-            initLoadButton();
-            alert('Scenario saved to your browser!');
+        function step(id, delta) { const i = document.getElementById(id); i.value = Math.max(0, Math.min(100, parseFloat(i.value) + delta)).toFixed(1); updateDashboard(); }
+        function stepCap(id, delta) { const i = document.getElementById(id); i.value = Math.max(0, parseFloat(i.value) + delta); updateDashboard(); }
+        function toggleBreakdown(id) { breakdownState[id] = !breakdownState[id]; updateDashboard(); }
+        function resetInputs() {
+            [4,5,6].forEach(m => { document.getElementById(`coll_${m}`).value = 50; document.getElementById(`fuel_${m}`).value = 200; document.getElementById(`cap_${m}`).value = data[535][m===4?'J':(m===5?'K':'L')]; document.getElementById(`lf_${m}`).value = 80; document.getElementById(`fare_${m}`).value = 2000; });
+            document.getElementById('bgn_cash_input').value = 1200; updateDashboard();
         }
+        function saveScenario() { localStorage.setItem('fin_sim_scenario', JSON.stringify({cap:[4,5,6].map(m=>document.getElementById(`cap_${m}`).value),lf:[4,5,6].map(m=>document.getElementById(`lf_${m}`).value),fare:[4,5,6].map(m=>document.getElementById(`fare_${m}`).value),fuel:[4,5,6].map(m=>document.getElementById(`fuel_${m}`).value),coll:[4,5,6].map(m=>document.getElementById(`coll_${m}`).value),bgn:document.getElementById('bgn_cash_input').value})); }
+        function loadScenario() { const s = JSON.parse(localStorage.getItem('fin_sim_scenario')); if(!s) return; [4,5,6].forEach((m,i)=>{ document.getElementById(`cap_${m}`).value=s.cap[i];document.getElementById(`lf_${m}`).value=s.lf[i];document.getElementById(`fare_${m}`).value=s.fare[i];document.getElementById(`fuel_${m}`).value=s.fuel[i];document.getElementById(`coll_${m}`).value=s.coll[i]; }); document.getElementById('bgn_cash_input').value=s.bgn; updateDashboard(); }
+        function shareLink() { const inputs = {cap:[4,5,6].map(m=>document.getElementById(`cap_${m}`).value),lf:[4,5,6].map(m=>document.getElementById(`lf_${m}`).value),fare:[4,5,6].map(m=>document.getElementById(`fare_${m}`).value),fuel:[4,5,6].map(m=>document.getElementById(`fuel_${m}`).value),coll:[4,5,6].map(m=>document.getElementById(`coll_${m}`).value),bgn:document.getElementById('bgn_cash_input').value}; const url = new URL(window.location.href); url.searchParams.set('s', btoa(JSON.stringify(inputs))); navigator.clipboard.writeText(url.toString()); alert('Link copied!'); }
+        function checkSharedScenario() { const p = new URLSearchParams(window.location.search), s = p.get('s'); if(s) { try { const inputs = JSON.parse(atob(s)); [4,5,6].forEach((m,i)=>{ document.getElementById(`cap_${m}`).value=inputs.cap[i]; document.getElementById(`lf_${m}`).value=inputs.lf[i]; document.getElementById(`fare_${m}`).value=inputs.fare[i]; document.getElementById(`fuel_${m}`).value=inputs.fuel[i]; document.getElementById(`coll_${m}`).value=inputs.coll[i]; }); document.getElementById('bgn_cash_input').value=inputs.bgn; updateDashboard(); } catch(e){} } }
+        async function exportToImage() { document.body.classList.add('is-exporting'); updateDashboard(); setTimeout(async () => { const canvas = await html2canvas(document.getElementById('dashboard-content'), { scale: 2 }); const link = document.createElement('a'); link.download = 'Financial_Simulation.png'; link.href = canvas.toDataURL(); link.click(); document.body.classList.remove('is-exporting'); }, 800); }
 
-        function loadScenario() {
-            const saved = localStorage.getItem('fin_sim_scenario');
-            if (!saved) return;
-            const inputs = JSON.parse(saved);
-            [4,5,6].forEach((m, i) => {
-                document.getElementById(`cap_${m}`).value = inputs.cap[i];
-                document.getElementById(`lf_${m}`).value = inputs.lf[i];
-                document.getElementById(`fare_${m}`).value = inputs.fare[i];
-                document.getElementById(`fuel_${m}`).value = inputs.fuel[i];
-            });
-            document.getElementById('bgn_cash_input').value = inputs.bgn_cash;
-            document.getElementById('ticket_rate_input').value = inputs.ticket_rate;
-            updateDashboard();
-        }
-
-        function initLoadButton() {
-            const btn = document.getElementById('btn-load');
-            if (btn) btn.disabled = !localStorage.getItem('fin_sim_scenario');
-        }
-
-        function shareLink() {
-            const inputs = {
-                cap: [4,5,6].map(m => document.getElementById(`cap_${m}`).value),
-                lf: [4,5,6].map(m => document.getElementById(`lf_${m}`).value),
-                fare: [4,5,6].map(m => document.getElementById(`fare_${m}`).value),
-                fuel: [4,5,6].map(m => document.getElementById(`fuel_${m}`).value),
-                bgn_cash: document.getElementById('bgn_cash_input').value,
-                ticket_rate: document.getElementById('ticket_rate_input').value
-            };
-            const encoded = btoa(JSON.stringify(inputs));
-            const url = new URL(window.location.href);
-            url.searchParams.set('s', encoded);
-            
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                alert('Shareable link copied to clipboard!');
-            });
-        }
-
-        function checkSharedScenario() {
-            const params = new URLSearchParams(window.location.search);
-            const shared = params.get('s');
-            if (shared) {
-                try {
-                    const inputs = JSON.parse(atob(shared));
-                    [4,5,6].forEach((m, i) => {
-                        document.getElementById(`cap_${m}`).value = inputs.cap[i];
-                        document.getElementById(`lf_${m}`).value = inputs.lf[i];
-                        document.getElementById(`fare_${m}`).value = inputs.fare[i];
-                        document.getElementById(`fuel_${m}`).value = inputs.fuel[i];
-                    });
-                    document.getElementById('bgn_cash_input').value = inputs.bgn_cash;
-                    document.getElementById('ticket_rate_input').value = inputs.ticket_rate;
-                    updateDashboard();
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (e) {
-                    console.error('Failed to load shared scenario', e);
-                }
-            }
-        }
-
-        resetInputs();
-        initLoadButton();
-        checkSharedScenario();
+        resetInputs(); checkSharedScenario();
     </script>
 </body>
 </html>
