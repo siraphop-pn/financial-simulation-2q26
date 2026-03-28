@@ -58,8 +58,9 @@
                 </div>
                 <div class="flex flex-col gap-2 no-export" data-html2canvas-ignore>
                     <div class="flex gap-2">
-                        <button onclick="saveScenario()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all flex-1">Save Scenario</button>
-                        <button id="btn-load" onclick="loadScenario()" class="bg-slate-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-700 transition-all flex-1 disabled:opacity-50 disabled:cursor-not-allowed">Load Last</button>
+                        <button onclick="saveScenario()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all flex-1">Save</button>
+                        <button id="btn-load" onclick="loadScenario()" class="bg-slate-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-700 transition-all flex-1 disabled:opacity-50 disabled:cursor-not-allowed">Load</button>
+                        <button onclick="shareLink()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-indigo-700 transition-all flex-1">Share</button>
                     </div>
                     <button onclick="exportToImage()" class="btn-export">Export Image</button>
                     <button onclick="resetInputs()" class="btn-reset">Reset to Default</button>
@@ -510,8 +511,49 @@
             if (btn) btn.disabled = !localStorage.getItem('fin_sim_scenario');
         }
 
+        function shareLink() {
+            const inputs = {
+                cap: [4,5,6].map(m => document.getElementById(`cap_${m}`).value),
+                lf: [4,5,6].map(m => document.getElementById(`lf_${m}`).value),
+                fare: [4,5,6].map(m => document.getElementById(`fare_${m}`).value),
+                fuel: [4,5,6].map(m => document.getElementById(`fuel_${m}`).value),
+                bgn_cash: document.getElementById('bgn_cash_input').value,
+                ticket_rate: document.getElementById('ticket_rate_input').value
+            };
+            const encoded = btoa(JSON.stringify(inputs));
+            const url = new URL(window.location.href);
+            url.searchParams.set('s', encoded);
+            
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                alert('Shareable link copied to clipboard!');
+            });
+        }
+
+        function checkSharedScenario() {
+            const params = new URLSearchParams(window.location.search);
+            const shared = params.get('s');
+            if (shared) {
+                try {
+                    const inputs = JSON.parse(atob(shared));
+                    [4,5,6].forEach((m, i) => {
+                        document.getElementById(`cap_${m}`).value = inputs.cap[i];
+                        document.getElementById(`lf_${m}`).value = inputs.lf[i];
+                        document.getElementById(`fare_${m}`).value = inputs.fare[i];
+                        document.getElementById(`fuel_${m}`).value = inputs.fuel[i];
+                    });
+                    document.getElementById('bgn_cash_input').value = inputs.bgn_cash;
+                    document.getElementById('ticket_rate_input').value = inputs.ticket_rate;
+                    updateDashboard();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {
+                    console.error('Failed to load shared scenario', e);
+                }
+            }
+        }
+
         resetInputs();
         initLoadButton();
+        checkSharedScenario();
     </script>
 </body>
 </html>
