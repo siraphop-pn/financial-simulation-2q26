@@ -57,8 +57,12 @@
                     <input type="number" id="ticket_rate_input" value="50" oninput="updateDashboard()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
                 </div>
                 <div class="flex flex-col gap-2 no-export" data-html2canvas-ignore>
+                    <div class="flex gap-2">
+                        <button onclick="saveScenario()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all flex-1">Save Scenario</button>
+                        <button id="btn-load" onclick="loadScenario()" class="bg-slate-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-700 transition-all flex-1 disabled:opacity-50 disabled:cursor-not-allowed">Load Last</button>
+                    </div>
                     <button onclick="exportToImage()" class="btn-export">Export Image</button>
-                    <button onclick="resetInputs()" class="btn-reset">Reset All</button>
+                    <button onclick="resetInputs()" class="btn-reset">Reset to Default</button>
                 </div>
             </div>
         </div>
@@ -451,28 +455,63 @@
             cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { maintainAspectRatio: false, plugins: { datalabels: { anchor: 'end', align: 'top', offset: 2, color: '#2563eb', font: { size: 10, weight: 'bold' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, layout: { padding: { top: 30 } }, scales: { y: { grid: { display: false } }, x: { grid: { display: false } } } } });
         }
 
-        async function exportToImage() {
+        function exportToImage() {
             document.body.classList.add('is-exporting');
             const dashboard = document.getElementById('dashboard-content');
             // Give a tiny moment for styles to apply
-            await new Promise(r => setTimeout(r, 100));
-            
-            const canvas = await html2canvas(dashboard, { 
-                scale: 2, 
-                backgroundColor: '#f8fafc',
-                useCORS: true,
-                logging: false
+            setTimeout(async () => {
+                const canvas = await html2canvas(dashboard, { 
+                    scale: 2, 
+                    backgroundColor: '#f8fafc',
+                    useCORS: true,
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = 'Financial_Simulation_2Q2026.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                document.body.classList.remove('is-exporting');
+            }, 100);
+        }
+
+        function saveScenario() {
+            const inputs = {
+                cap: [4,5,6].map(m => document.getElementById(`cap_${m}`).value),
+                lf: [4,5,6].map(m => document.getElementById(`lf_${m}`).value),
+                fare: [4,5,6].map(m => document.getElementById(`fare_${m}`).value),
+                fuel: [4,5,6].map(m => document.getElementById(`fuel_${m}`).value),
+                bgn_cash: document.getElementById('bgn_cash_input').value,
+                ticket_rate: document.getElementById('ticket_rate_input').value
+            };
+            localStorage.setItem('fin_sim_scenario', JSON.stringify(inputs));
+            initLoadButton();
+            alert('Scenario saved to your browser!');
+        }
+
+        function loadScenario() {
+            const saved = localStorage.getItem('fin_sim_scenario');
+            if (!saved) return;
+            const inputs = JSON.parse(saved);
+            [4,5,6].forEach((m, i) => {
+                document.getElementById(`cap_${m}`).value = inputs.cap[i];
+                document.getElementById(`lf_${m}`).value = inputs.lf[i];
+                document.getElementById(`fare_${m}`).value = inputs.fare[i];
+                document.getElementById(`fuel_${m}`).value = inputs.fuel[i];
             });
-            
-            const link = document.createElement('a');
-            link.download = 'Financial_Simulation_2Q2026.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            document.body.classList.remove('is-exporting');
+            document.getElementById('bgn_cash_input').value = inputs.bgn_cash;
+            document.getElementById('ticket_rate_input').value = inputs.ticket_rate;
+            updateDashboard();
+        }
+
+        function initLoadButton() {
+            const btn = document.getElementById('btn-load');
+            if (btn) btn.disabled = !localStorage.getItem('fin_sim_scenario');
         }
 
         resetInputs();
+        initLoadButton();
     </script>
 </body>
 </html>
