@@ -24,6 +24,7 @@
         .expand-btn { @apply w-5 h-5 inline-flex items-center justify-center rounded border border-slate-300 mr-2 text-[10px] font-black cursor-pointer hover:bg-slate-100 transition-colors; }
         input[type="number"] { @apply w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all; }
         .btn-export { @apply bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm; }
+        .btn-reset { @apply bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all border border-slate-200; }
         .stepper-btn { @apply w-7 h-7 flex items-center justify-center bg-slate-100 rounded-lg text-slate-600 hover:bg-blue-600 hover:text-white transition-all font-black border border-slate-200; }
         .editable-red { @apply text-red-600 font-bold; }
         
@@ -56,7 +57,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[180px]">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Cash Rev. Coll. %</span>
+                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-1">Cash revenue collection %</span>
                     <input type="number" id="bgn_coll_input" value="50" oninput="updateAllColls()" class="text-lg font-black text-red-600 bg-transparent border-0 p-0 focus:ring-0 w-full cursor-pointer">
                 </div>
                 <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[180px]">
@@ -69,14 +70,17 @@
                         <button onclick="loadScenario()" class="bg-slate-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-700">Load</button>
                         <button onclick="shareLink()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-indigo-700">Share</button>
                     </div>
-                    <button onclick="exportToImage()" class="btn-export">Export Image</button>
+                    <div class="flex gap-2">
+                        <button onclick="exportToImage()" class="btn-export flex-1">Export Image</button>
+                        <button onclick="resetInputs()" class="btn-reset flex-1">Reset</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="content-detail">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <!-- April -->
+                <!-- Monthly Cards -->
                 <div class="card border-t-4 border-t-blue-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">April</h2>
                     <div class="input-group">
@@ -90,7 +94,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- May -->
                 <div class="card border-t-4 border-t-indigo-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">May</h2>
                     <div class="input-group">
@@ -104,7 +107,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_5" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- June -->
                 <div class="card border-t-4 border-t-purple-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">June</h2>
                     <div class="input-group">
@@ -127,22 +129,34 @@
                     <div class="card !p-0 overflow-hidden"><div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="text-sm font-black uppercase tracking-tight">Strategic Targets</h3></div><div class="table-container !mb-0 border-0"><table class="w-full text-left border-collapse"><thead><tr><th class="table-header w-1/3">Factor</th><th class="table-header text-right">Apr</th><th class="table-header text-right">May</th><th class="table-header text-right">Jun</th></tr></thead><tbody id="break_body"></tbody></table></div></div>
                 </div>
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="card h-fit"><h3 class="text-[10px] font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Margin (%)</h3><div class="relative h-64"><canvas id="marginChart"></canvas></div></div>
-                    <div class="card h-fit"><h3 class="text-[10px] font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Ending Cash Balance (MTHB)</h3><div class="relative h-64"><canvas id="cashChart"></canvas></div></div>
+                    <div class="card h-fit"><h3 class="text-[10px] font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Margin Trend (%)</h3><div class="relative h-64"><canvas id="marginChart"></canvas></div></div>
+                    <div class="card h-fit"><h3 class="text-[10px] font-black mb-6 text-slate-400 uppercase tracking-widest text-center">Liquidity (MTHB)</h3><div class="relative h-64"><canvas id="cashChart"></canvas></div></div>
                 </div>
             </div>
 
-            <!-- Assumptions Box -->
-            <div class="mt-10 bg-slate-100 p-6 rounded-xl border border-slate-200">
-                <h4 class="text-xs font-black uppercase text-slate-500 mb-4">Assumptions & Logic</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] text-slate-600 leading-relaxed">
-                    <div class="bg-white p-4 rounded-lg border border-slate-200">
-                        <div class="font-bold text-blue-600 mb-1">Revenue & COS</div>
-                        Fare & Capacity scale Net Revenue. COS scales by Capacity assuming existing utilization. Fuel is adjusted by input price. Distribution is 3% of Revenue.
+            <!-- Long Assumptions Box -->
+            <div class="mt-10 bg-slate-100 p-8 rounded-2xl border border-slate-200">
+                <h4 class="text-xs font-black uppercase text-slate-500 mb-6 flex items-center gap-2"><span>📌</span> Assumptions & Financial Logic</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] text-slate-600 leading-relaxed">
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="font-black text-blue-600 uppercase mb-2 text-[10px]">Revenue & Cost Scaling</div>
+                            Fare & Capacity directly scale Net Revenue. Variable COS (Fuel, Station, Maintenance) scales by Capacity assuming existing utilization levels. Fuel is further adjusted by input price (Base 200). Distribution is fixed at 3% of Net Revenue. Other Income scales with Capacity.
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="font-black text-indigo-600 uppercase mb-2 text-[10px]">Strategic Matrix Logic</div>
+                            The NPAT matrix analyzes Fare vs Load Factor sensitivity at current Capacity. The Cash matrix calculates the absolute ending liquidity balance including previous month rollovers and debenture inflows.
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border border-slate-200">
-                        <div class="font-bold text-emerald-600 mb-1">Cash Flow</div>
-                        Cash inflow uses monthly collection % + 1,500M debenture in June. Maintenance cash follows monthly flown capacity. All COGS/OPEX/Interest are paid in full monthly.
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="font-black text-emerald-600 uppercase mb-2 text-[10px]">Cash Flow Dynamics</div>
+                            Cash inflow is calculated as monthly collection % of Net Revenue plus 1,500M THB debenture injection in June. Maintenance cash follows monthly flown capacity. Operational items (Salaries, Fuel, Station Charges, OPEX, Interest) are paid in full monthly as they occur.
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="font-black text-purple-600 uppercase mb-2 text-[10px]">Liquidity Chains</div>
+                            BGN Liquidity starts at 1,200M THB. April End = April Cash Flow + 1,200M. May End = May Cash Flow + April End. June End = June Cash Flow + May End. This cumulative chain is maintained across both Detailed and Matrix views.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -174,7 +188,7 @@
             [4, 5, 6].forEach(id => {
                 const mName = id === 4 ? 'April' : (id === 5 ? 'May' : 'June'), cap = parseFloat(document.getElementById(`cap_${id}`).value);
                 const div = document.createElement('div');
-                div.innerHTML = `<div class="flex items-center gap-4 mb-4"><h3 class="text-xl font-black">${mName}</h3><span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">${cap.toLocaleString()} SEATS</span></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8"><div class="lg:col-span-8 card overflow-hidden !p-0 border-t-4 border-t-emerald-500"><div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-[10px] uppercase text-slate-500">Profit Matrix (NPAT MTHB)</div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_npat_${id}"></table></div></div><div class="lg:col-span-4 card overflow-hidden !p-0 border-t-4 border-t-blue-500"><div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-[10px] uppercase text-blue-600 flex justify-between"><span>Ending Cash</span><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-bold">Cumulative</span></div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_cash_${id}"></table></div></div></div>`;
+                div.innerHTML = `<div class="flex items-center gap-4 mb-4"><h3 class="text-xl font-black">${mName}</h3><span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">${cap.toLocaleString()} SEATS</span></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8"><div class="lg:col-span-8 card overflow-hidden !p-0 border-t-4 border-t-emerald-500"><div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-[10px] uppercase text-slate-500">Profit Matrix (NPAT MTHB)</div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_npat_${id}"></table></div></div><div class="lg:col-span-4 card overflow-hidden !p-0 border-t-4 border-t-blue-500"><div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-[10px] uppercase text-blue-600 flex justify-between"><span>Ending Cash Balance</span><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-bold">Cumulative</span></div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_cash_${id}"></table></div></div></div>`;
                 container.appendChild(div); buildMatrix(id, cap, 'npat', `matrix_npat_${id}`); buildMatrix(id, cap, 'cash', `matrix_cash_${id}`);
             });
         }
@@ -230,7 +244,7 @@
             const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0), opex = { sal: scale(data[292][col], bCap, cCap, 1), prm: (data[314].J / 4717065636) * netRev, ins: scale(data[347][col], bCap, cCap, 1), fee: 50e6 + (0.012 * netRev), ga: scale(data[378][col], bCap, cCap, 1), ope: scale(data[417][col], bCap, cCap, 1), srv: scale(data[434][col], bCap, cCap, 1) };
             const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0), dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col], bCap, cCap, 1) + scale(data[480][col], bCap, cCap, 1) + scale(data[492][col], bCap, cCap, 1), nop = (netRev - totCOGS) - totOPEX - dep - netInt, fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1), npat = nop - fx - tax;
             const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (collRate / 100)) + deb, coMnt = (cCap / budgetedSeats[id]) * data[149][col], cout = cogs.rnt + cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
-            const otherCOGS = totCOGS - cogs.dst, rhs = (otherCOGS + totOPEX + dep + netInt + fx + tax) - ((netRev-sched)*0.97);
+            const rhs = (totCOGS - cogs.dst + totOPEX + dep + netInt + fx + tax) - ((netRev-sched)*0.97);
             return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop, fx, tax, npat, cin, deb, cout, coMaint: coMnt, netInt, dep, beFare: rhs / (Math.max(1, cPax) * 0.97), beLF: rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff: ((cCap/budgetedSeats[id])-1)*100, netCash: cin - cout };
         }
 
@@ -245,15 +259,14 @@
                 const tot = (k) => res[4][k] + res[5][k] + res[6][k]; const disp = (id) => breakdownState[id] ? 'table-row' : 'none'; const btn = (id) => breakdownState[id] ? '–' : '+';
                 document.getElementById('pl_body').innerHTML = `
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('rev')">${btn('rev')}</span>Net Revenue</td><td class="table-cell text-right">${f(res[4].netRev)}</td><td class="table-cell text-right">${f(res[5].netRev)}</td><td class="table-cell text-right">${f(res[6].netRev)}</td><td class="table-cell text-right total-col font-bold">${f(tot('netRev'))}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td><td class="breakdown-cell text-right total-col">${f(tot('sched'))}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary & Other</td><td class="breakdown-cell text-right">${f(res[4].anc + res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].anc + res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].anc + res[6].oinc)}</td><td class="breakdown-cell text-right total-col">${f(tot('anc') + tot('oinc'))}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary & Other</td><td class="breakdown-cell text-right">${f(res[4].anc + res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].anc + res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].anc + res[6].oinc)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries-COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Maintenance</td><td class="breakdown-cell text-right">${f(res[4].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mnt)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('opex')">${btn('opex')}</span>OPEX</td><td class="table-cell text-right negative">${f(res[4].totOPEX)}</td><td class="table-cell text-right negative">${f(res[5].totOPEX)}</td><td class="table-cell text-right negative">${f(res[6].totOPEX)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totOPEX'))}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Salaries-Admin</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
                     <tr class="bg-blue-50/50"><td class="table-cell font-black text-blue-700">Profit After Tax (NPAT)</td><td class="table-cell text-right font-black text-blue-700">${f(res[4].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[5].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[6].npat)}</td><td class="table-cell text-right total-col font-black text-blue-700">${f(tot('npat'))}</td></tr>`;
 
                 const b = parseFloat(document.getElementById('bgn_cash_input').value);
@@ -261,24 +274,24 @@
                 document.getElementById('cf_body').innerHTML = `
                     <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right font-bold">${f(b*1e6)}</td><td class="table-cell text-right font-bold">${f(c4*1e6)}</td><td class="table-cell text-right font-bold">${f(c5*1e6)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[6].cin)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold uppercase">Cash revenue collection</td><td class="breakdown-cell text-right font-black">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[6].cin - res[6].deb)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold">Cash revenue collection</td><td class="breakdown-cell text-right">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right">${f(res[6].cin - res[6].deb)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture Inflow</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">${f(res[6].deb)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative font-bold">${f(res[4].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[5].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[6].cout)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Rental Outflow</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries & Wages</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal + res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal + res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal + res[6].opex.sal)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries-COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Maintenance</td><td class="breakdown-cell text-right">${f(res[4].coMaint)}</td><td class="breakdown-cell text-right">${f(res[5].coMaint)}</td><td class="breakdown-cell text-right">${f(res[6].coMaint)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Maintenance (Cash)</td><td class="breakdown-cell text-right">${f(res[4].coMaint)}</td><td class="breakdown-cell text-right">${f(res[5].coMaint)}</td><td class="breakdown-cell text-right">${f(res[6].coMaint)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">User Charges</td><td class="breakdown-cell text-right">${f(res[4].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.usr)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.usr)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Distribution</td><td class="breakdown-cell text-right">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.dst)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Meals & Merch.</td><td class="breakdown-cell text-right">${f(res[4].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mls)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mls)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Promotion & G&A</td><td class="breakdown-cell text-right">${f(res[4].opex.prm + res[4].opex.ga + res[4].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm + res[5].opex.ga + res[5].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm + res[6].opex.ga + res[6].opex.ins)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Fees & Other Ops.</td><td class="breakdown-cell text-right">${f(res[4].opex.fee + res[4].opex.ope + res[4].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[5].opex.fee + res[5].opex.ope + res[5].opex.srv)}</td><td class="breakdown-cell text-right">${f(res[6].opex.fee + res[6].opex.ope + res[6].opex.srv)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest & Other</td><td class="breakdown-cell text-right">${f(res[4].netInt)}</td><td class="breakdown-cell text-right">${f(res[5].netInt)}</td><td class="breakdown-cell text-right">${f(res[6].netInt)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Salaries-Admin</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Insurance & G&A</td><td class="breakdown-cell text-right">${f(res[4].opex.ins + res[4].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ins + res[5].opex.ga)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ins + res[6].opex.ga)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest Paid</td><td class="breakdown-cell text-right">${f(res[4].netInt)}</td><td class="breakdown-cell text-right">${f(res[5].netInt)}</td><td class="breakdown-cell text-right">${f(res[6].netInt)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Other Cash Payments</td><td class="breakdown-cell text-right">${f(res[4].cout - (res[4].cogs.rnt + res[4].cogs.sal + res[4].cogs.fuel + res[4].coMaint + res[4].cogs.usr + res[4].opex.prm + res[4].opex.sal + res[4].opex.ins + res[4].opex.ga + res[4].netInt))}</td><td class="breakdown-cell text-right">${f(res[5].cout - (res[5].cogs.rnt + res[5].cogs.sal + res[5].cogs.fuel + res[5].coMaint + res[5].cogs.usr + res[5].opex.prm + res[5].opex.sal + res[5].opex.ins + res[5].opex.ga + res[5].netInt))}</td><td class="breakdown-cell text-right">${f(res[6].cout - (res[6].cogs.rnt + res[6].cogs.sal + res[6].cogs.fuel + res[6].coMaint + res[6].cogs.usr + res[6].opex.prm + res[6].opex.sal + res[6].opex.ins + res[6].opex.ga + res[6].netInt))}</td></tr>
                     <tr class="bg-emerald-50/50"><td class="table-cell font-black text-emerald-700">Ending Cash Balance</td><td class="table-cell text-right font-black text-emerald-700">${f(c4*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c5*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c6*1e6)}</td></tr>`;
 
                 document.getElementById('break_body').innerHTML = `
-                    <tr><td class="table-cell font-black text-blue-600">Fare Breakeven</td><td class="table-cell text-right font-black">${Math.round(res[4].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[5].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[6].beFare).toLocaleString()}</td></tr>
-                    <tr><td class="table-cell font-black text-indigo-600">LF Breakeven</td><td class="table-cell text-right font-black">${(res[4].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[5].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[6].beLF*100).toFixed(1)}%</td></tr>`;
+                    <tr><td class="table-cell font-black text-blue-600">Fare for P&L Breakeven</td><td class="table-cell text-right font-black">${Math.round(res[4].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[5].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[6].beFare).toLocaleString()}</td></tr>
+                    <tr><td class="table-cell font-black text-indigo-600">LF for P&L Breakeven</td><td class="table-cell text-right font-black">${(res[4].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[5].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[6].beLF*100).toFixed(1)}%</td></tr>`;
 
                 ['4','5','6'].forEach(id => {
                     document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
@@ -292,7 +305,7 @@
             const b = parseFloat(document.getElementById('bgn_cash_input').value);
             const d = [b, b + res[4].netCash/1e6, b + (res[4].netCash+res[5].netCash)/1e6, b + (res[4].netCash+res[5].netCash+res[6].netCash)/1e6];
             if (cashChart) cashChart.destroy();
-            cashChart = new Chart(document.getElementById('cashChart').getContext('2d'), { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4 }] }, options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: true, align: 'top', color: '#1e40af', font: { weight: '900', size: 10 }, formatter: (v) => Math.round(v).toLocaleString() } } } });
+            cashChart = new Chart(document.getElementById('cashChart').getContext('2d'), { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4 }] }, options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: true, align: 'top', color: '#1e40af', font: { weight: '900', size: 10 }, formatter: Math.round } } } });
             if (marginChart) marginChart.destroy();
             marginChart = new Chart(document.getElementById('marginChart').getContext('2d'), { type: 'bar', data: { labels: ['Apr', 'May', 'Jun'], datasets: [{ data: [res[4].npat/res[4].netRev*100, res[5].npat/res[5].netRev*100, res[6].npat/res[6].netRev*100], backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: true, anchor: 'end', align: 'top', color: '#6b21a8', font: { weight: '900', size: 10 }, formatter: (v) => v.toFixed(1) + '%' } } } });
         }
