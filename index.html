@@ -134,8 +134,11 @@
             </div>
 
             <div class="mt-10 bg-slate-100 p-8 rounded-2xl border border-slate-200">
-                <h4 class="text-xs font-black uppercase text-slate-500 mb-6 flex items-center gap-2"><span>📌</span> Assumptions & Financial Logic</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] text-slate-600 leading-relaxed">
+                <div class="flex items-center justify-between cursor-pointer group" onclick="toggleBreakdown('ass')">
+                    <h4 class="text-xs font-black uppercase text-slate-500 flex items-center gap-2"><span>📌</span> Assumptions & Financial Logic</h4>
+                    <span class="expand-btn" id="btn-ass">+</span>
+                </div>
+                <div id="ass_content" class="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] text-slate-600 leading-relaxed mt-6" style="display: none;">
                     <div class="space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                             <div class="font-black text-blue-600 uppercase mb-2 text-[10px]">P&L Assumptions</div>
@@ -242,10 +245,39 @@
         function scale(val, bCap, cCap, s) { return ((1 - (s || 0)) * val * (cCap / bCap)) + ((s || 0) * val); }
 
         function calcWithParams(id, col, cCap, cLF, cFare, fP, collRate) {
-            const bCap = data[535][col], cPax = cCap * cLF, sched = cPax * cFare, anc = [27, 49, 60, 63, 65].reduce((a, r) => a + scale(data[r][col], bCap, cCap, 0), 0), oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
-            const cogs = { rnt: scale(data[110][col], bCap, cCap, 1), sal: scale(data[112][col], bCap, cCap, 0.2), fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), usr: scale(data[138][col], bCap, cCap, 0), mnt: scale(data[149][col], bCap, cCap, 1), mls: scale(data[189][col], bCap, cCap, 0), dst: netRev * 0.03, rmp: scale(data[238][col], bCap, cCap, 0.2), ocs: scale(data[256][col], bCap, cCap, 0.1) };
-            const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0), opex = { sal: scale(data[292][col], bCap, cCap, 1), prm: (data[314].J / 4717065636) * netRev, ins: scale(data[347][col], bCap, cCap, 1), fee: 50e6 + (0.012 * netRev), ga: scale(data[378][col], bCap, cCap, 1), ope: scale(data[417][col], bCap, cCap, 1), srv: scale(data[434][col], bCap, cCap, 1) };
-            const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0), dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col], bCap, cCap, 1) + scale(data[480][col], bCap, cCap, 1) + scale(data[492][col], bCap, cCap, 1), nop = (netRev - totCOGS) - totOPEX - dep - netInt, fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1), npat = nop - fx - tax;
+            const bCap = data[535][col], cPax = cCap * cLF, sched = cPax * cFare;
+            // Ancil = 15% of (Sched + Ancil) => Ancil = (0.15/0.85) * Sched
+            const anc = (0.15 / 0.85) * sched, oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
+            
+            const cogs = { 
+                rnt: scale(data[110][col], bCap, cCap, 1), 
+                // Salaries: Fixed 100M, rest float
+                sal: 100e6 + scale(data[112][col] - 100e6, bCap, cCap, 0),
+                fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), 
+                usr: scale(data[138][col], bCap, cCap, 0), 
+                mnt: scale(data[149][col], bCap, cCap, 1), 
+                mls: scale(data[189][col], bCap, cCap, 0), 
+                dst: netRev * 0.03, 
+                // RAMP: Fixed 20M, rest float
+                rmp: 20e6 + scale(data[238][col] - 20e6, bCap, cCap, 0), 
+                // Other COS: Fixed 4M, rest float
+                ocs: 4e6 + scale(data[256][col] - 4e6, bCap, cCap, 0) 
+            };
+            const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0);
+            
+            const opex = { 
+                sal: scale(data[292][col], bCap, cCap, 1), 
+                prm: (data[314].J / 4717065636) * netRev, 
+                ins: scale(data[347][col], bCap, cCap, 1), 
+                // Fees: Fixed 50M, rest float
+                fee: 50e6 + scale(data[361][col] - 50e6, bCap, cCap, 0), 
+                ga: scale(data[378][col], bCap, cCap, 1), 
+                ope: scale(data[417][col], bCap, cCap, 1), 
+                srv: scale(data[434][col], bCap, cCap, 1) 
+            };
+            const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0);
+            
+            const dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col], bCap, cCap, 1) + scale(data[480][col], bCap, cCap, 1) + scale(data[492][col], bCap, cCap, 1), nop = (netRev - totCOGS) - totOPEX - dep - netInt, fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1), npat = nop - fx - tax;
             const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (collRate / 100)) + deb, coMnt = (cCap / budgetedSeats[id]) * data[149][col], cout = cogs.rnt + cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
             const rhs = (totCOGS - cogs.dst + totOPEX + dep + netInt + fx + tax) - ((netRev-sched)*0.97);
             return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop, fx, tax, npat, cin, deb, cout, coMaint: coMnt, netInt, dep, beFare: rhs / (Math.max(1, cPax) * 0.97), beLF: rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff: ((cCap/budgetedSeats[id])-1)*100, netCash: cin - cout };
@@ -323,6 +355,14 @@
                     document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
                     document.getElementById(`lf_${id}_val`).innerText = document.getElementById(`lf_${id}`).value + '%';
                 });
+
+                // Toggle assumptions visibility
+                const assBox = document.getElementById('ass_content');
+                if (assBox) {
+                    assBox.style.display = breakdownState.ass ? 'grid' : 'none';
+                    document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+';
+                }
+
                 renderCharts(res);
             } catch (e) { console.error(e); }
         }
