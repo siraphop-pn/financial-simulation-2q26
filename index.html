@@ -195,7 +195,7 @@
                     <button onclick="updateUnitChart('total')" id="unit-btn-total" class="px-6 py-2 text-[10px] font-black rounded-xl transition-all">TOTAL 2Q</button>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
                 <div class="lg:col-span-9 card !p-8 h-[600px]"><canvas id="unitChart"></canvas></div>
                 <div class="lg:col-span-3 space-y-6">
                     <div id="unit-margin-card" class="card text-center p-8">
@@ -212,19 +212,27 @@
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost / Seat</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
                     </div>
-
-                    <div class="card p-6 space-y-4 bg-slate-50/50">
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Revenue</span><span id="cur-total-rev" class="font-mono font-bold text-emerald-600 text-sm">0.0</span></div>
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Fixed Cost</span><span id="cur-total-fixed" class="font-mono font-bold text-red-600 text-sm">0.0</span></div>
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Var Cost</span><span id="cur-total-var" class="font-mono font-bold text-blue-600 text-sm">0.0</span></div>
-                        <div class="flex justify-between items-center border-t border-slate-200 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total MTHB Cost</span><span id="cur-total-exp" class="font-mono text-slate-900 text-sm">0.0</span></div>
-                    </div>
                 </div>
             </div>
 
-            <div class="mt-8">
-                <h3 class="text-xl font-black text-slate-900 mb-4 px-2">Total Economics Analysis (MTHB)</h3>
-                <div class="card !p-8 h-[500px]"><canvas id="totalChart"></canvas></div>
+            <div>
+                <h3 class="text-xl font-black text-slate-900 mb-6 px-2">Total Economics Analysis</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-9 card !p-8 h-[600px]"><canvas id="totalChart"></canvas></div>
+                    <div class="lg:col-span-3 space-y-6">
+                        <div id="total-profit-card" class="card text-center p-8">
+                            <span class="text-[10px] font-black text-slate-400 uppercase block mb-2">Total NPAT at Current Capacity</span>
+                            <div id="total-profit-val" class="text-4xl font-black mb-1">0.0</div>
+                            <span class="text-xs font-bold text-slate-500">MILLION BAHT</span>
+                        </div>
+                        <div class="card p-6 space-y-4">
+                            <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Revenue</span><span id="cur-total-rev" class="font-mono font-bold text-emerald-600 text-sm">0.0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Fixed Cost</span><span id="cur-total-fixed" class="font-mono font-bold text-red-600 text-sm">0.0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Var Cost</span><span id="cur-total-var" class="font-mono font-bold text-blue-600 text-sm">0.0</span></div>
+                            <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Expenditure</span><span id="cur-total-exp" class="font-mono text-slate-900 text-sm">0.0</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -471,6 +479,11 @@
             document.getElementById('unit-profit-val').innerText = unitProfit.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
             document.getElementById('unit-margin-card').className = unitProfit >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
             document.getElementById('unit-profit-val').className = unitProfit >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
+            
+            const totalNPAT = (curR - (curF + curV)) / 1e6;
+            document.getElementById('total-profit-val').innerText = totalNPAT.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            document.getElementById('total-profit-card').className = totalNPAT >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
+            document.getElementById('total-profit-val').className = totalNPAT >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
             
             let curPax = 0;
             if (month === 'total') { [4,5,6].forEach(id => { curPax += parseFloat(document.getElementById(`cap_${id}`).value) * (parseFloat(document.getElementById(`lf_${id}`).value)/100); }); }
