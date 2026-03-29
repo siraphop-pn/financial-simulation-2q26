@@ -45,7 +45,7 @@
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-900">
     <div id="dashboard-content" class="max-w-7xl mx-auto bg-slate-50 p-4 rounded-xl">
-        <!-- Header Controls -->
+        <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 border-b border-slate-200 pb-8">
             <div>
                 <div class="flex items-center gap-3 mb-6">
@@ -81,10 +81,9 @@
             </div>
         </div>
 
-        <!-- Detailed Simulation Tab -->
+        <!-- Simulation Tab Content -->
         <div id="content-detail">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <!-- April Card -->
                 <div class="card border-t-4 border-t-blue-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">April</h2>
                     <div class="input-group">
@@ -99,7 +98,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- May Card -->
                 <div class="card border-t-4 border-t-indigo-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">May</h2>
                     <div class="input-group">
@@ -114,7 +112,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_5" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- June Card -->
                 <div class="card border-t-4 border-t-purple-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">June</h2>
                     <div class="input-group">
@@ -143,7 +140,6 @@
                 </div>
             </div>
 
-            <!-- Collapsible Assumptions Box -->
             <div class="mt-10 bg-slate-100 p-8 rounded-2xl border border-slate-200">
                 <div class="flex items-center justify-between cursor-pointer group" onclick="toggleBreakdown('ass')">
                     <h4 class="text-xs font-black uppercase text-slate-500 flex items-center gap-2"><span>📌</span> Assumptions & Financial Logic</h4>
@@ -191,10 +187,7 @@
         <!-- Unit Analysis Tab -->
         <div id="content-unit" style="display: none;">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-900">Unit Economics Analysis</h2>
-                    <p class="text-slate-500 text-sm">Revenue vs Costs per Seat. Vertical line indicates current capacity.</p>
-                </div>
+                <div><h2 class="text-2xl font-black text-slate-900">Unit Economics Analysis</h2><p class="text-slate-500 text-sm">Revenue vs Costs per Seat. Pinpoint indicates current capacity.</p></div>
                 <div class="flex bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200 no-export">
                     <button onclick="updateUnitChart(4)" id="unit-btn-4" class="px-6 py-2 text-[10px] font-black rounded-xl transition-all">APR</button>
                     <button onclick="updateUnitChart(5)" id="unit-btn-5" class="px-6 py-2 text-[10px] font-black rounded-xl transition-all">MAY</button>
@@ -211,8 +204,9 @@
                         <span class="text-xs font-bold text-slate-500">BAHT / SEAT</span>
                     </div>
                     <div class="card p-6 space-y-4">
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase">Rev / Seat</span><span id="cur-unit-rev" class="font-mono font-bold text-emerald-600">0</span></div>
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase">Cost / Seat</span><span id="cur-unit-cost" class="font-mono font-bold text-red-600">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Rev / Seat</span><span id="cur-unit-rev" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Seat</span><span id="cur-unit-fixed" class="font-mono font-bold text-red-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                     </div>
                 </div>
             </div>
@@ -247,33 +241,37 @@
         function calcWithParams(id, col, cCap, cLF, cFare, fP, collRate) {
             const bCap = data[535][col], cPax = cCap * cLF, sched = cPax * cFare;
             const anc = (0.15 / 0.85) * sched, oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
-            const cogs = { 
-                rnt: scale(data[110][col], bCap, cCap, 1), 
-                sal: 100e6 + scale(data[112][col] - 100e6, bCap, cCap, 0),
-                fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200), 
-                usr: scale(data[138][col], bCap, cCap, 0), 
-                mnt: scale(data[149][col], bCap, cCap, 1), 
-                mls: scale(data[189][col], bCap, cCap, 0), 
-                dst: netRev * 0.03, 
-                rmp: 20e6 + scale(data[238][col] - 20e6, bCap, cCap, 0), 
-                ocs: 4e6 + scale(data[256][col] - 4e6, bCap, cCap, 0) 
+            const fCosts = {
+                salBase: 100e6, rampBase: 20e6, ocsBase: 4e6, feeBase: 50e6,
+                rnt: scale(data[110][col], bCap, cCap, 1),
+                mnt: scale(data[149][col], bCap, cCap, 1),
+                salAdmin: scale(data[292][col], bCap, cCap, 1),
+                ins: scale(data[347][col], bCap, cCap, 1),
+                ga: scale(data[378][col], bCap, cCap, 1),
+                ope: scale(data[417][col], bCap, cCap, 1),
+                srv: scale(data[434][col], bCap, cCap, 1),
+                dep: scale(data[445][col], bCap, cCap, 1),
+                interest: scale(data[474][col] + data[480][col] + data[492][col], bCap, cCap, 1),
+                fx: scale(data[503][col], bCap, cCap, 1),
+                tax: scale(data[523][col], bCap, cCap, 1)
             };
-            const totCOGS = Object.values(cogs).reduce((a, b) => a + b, 0);
-            const opex = { 
-                sal: scale(data[292][col], bCap, cCap, 1), 
-                prm: (data[314].J / 4717065636) * netRev, 
-                ins: scale(data[347][col], bCap, cCap, 1), 
-                fee: 50e6 + scale(data[361][col] - 50e6, bCap, cCap, 0), 
-                ga: scale(data[378][col], bCap, cCap, 1), 
-                ope: scale(data[417][col], bCap, cCap, 1), 
-                srv: scale(data[434][col], bCap, cCap, 1) 
+            const totFixed = Object.values(fCosts).reduce((a, b) => a + b, 0);
+            const vCosts = {
+                salFloat: scale(data[112][col] - 100e6, bCap, cCap, 0),
+                fuel: scale(data[134][col], bCap, cCap, 0) * (fP/200),
+                usr: scale(data[138][col], bCap, cCap, 0),
+                meals: scale(data[189][col], bCap, cCap, 0),
+                rampFloat: scale(data[238][col] - 20e6, bCap, cCap, 0),
+                ocsFloat: scale(data[256][col] - 4e6, bCap, cCap, 0),
+                dist: netRev * 0.03,
+                promo: (data[314].J / 4717065636) * netRev,
+                feeFloat: scale(data[361][col] - 50e6, bCap, cCap, 0)
             };
-            const totOPEX = Object.values(opex).reduce((a, b) => a + b, 0);
-            const dep = scale(data[445][col], bCap, cCap, 1), netInt = scale(data[474][col] + data[480][col] + data[492][col], bCap, cCap, 1), fx = scale(data[503][col], bCap, cCap, 1), tax = scale(data[523][col], bCap, cCap, 1);
-            const npat = netRev - (totCOGS + totOPEX + dep + netInt + fx + tax);
-            const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (collRate / 100)) + deb, coMnt = (cCap / budgetedSeats[id]) * data[149][col], cout = cogs.rnt + cogs.sal + cogs.fuel + cogs.usr + coMnt + cogs.mls + cogs.dst + cogs.rmp + cogs.ocs + opex.sal + opex.prm + opex.ins + (opex.fee * 0.5) + opex.ga + opex.ope + opex.srv + scale(data[480][col], bCap, cCap, 1);
-            const rhs = (totCOGS + totOPEX + dep + netInt + fx + tax - cogs.dst) - ((netRev-sched)*0.97);
-            return { netRev, sched, anc, oinc, totCOGS, cogs, totOPEX, opex, nop: (netRev - totCOGS - totOPEX - dep - netInt), fx, tax, npat, cin, deb, cout, coMaint: coMnt, netInt, dep, beFare: rhs / (Math.max(1, cPax) * 0.97), beLF: rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff: ((cCap/budgetedSeats[id])-1)*100, netCash: cin - cout };
+            const totVar = Object.values(vCosts).reduce((a, b) => a + b, 0);
+            const npat = netRev - (totFixed + totVar);
+            const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (collRate / 100)) + deb, coMnt = (cCap / budgetedSeats[id]) * data[149][col], cout = (totFixed - fCosts.dep - fCosts.interest) + totVar + fCosts.interest + coMnt;
+            const rhs = (totFixed + totVar - vCosts.dist) - ((netRev-sched)*0.97);
+            return { netRev, sched, anc, oinc, npat, cin, deb, cout, coMaint: coMnt, netInt: fCosts.interest, dep: fCosts.dep, beFare: rhs / (Math.max(1, cPax) * 0.97), beLF: rhs / (Math.max(1, cCap * cFare) * 0.97), bgDiff: ((cCap/budgetedSeats[id])-1)*100, netCash: cin - cout, totFixed, totVar, cogs: { rnt: fCosts.rnt, sal: fCosts.salBase + vCosts.salFloat, fuel: vCosts.fuel, usr: vCosts.usr, mnt: fCosts.mnt, mls: vCosts.meals, dst: vCosts.dist, rmp: fCosts.rampBase + vCosts.rampFloat, ocs: fCosts.ocsBase + vCosts.ocsFloat }, opex: { sal: fCosts.salAdmin, prm: vCosts.promo, ins: fCosts.ins, fee: fCosts.feeBase + vCosts.feeFloat, ga: fCosts.ga, ope: fCosts.ope, srv: fCosts.srv }, fx: fCosts.fx, tax: fCosts.tax };
         }
 
         function calc(id, col) { const bCap = data[535][col], cCap = parseFloat(document.getElementById(`cap_${id}`).value), cLF = parseFloat(document.getElementById(`lf_${id}`).value) / 100, cFare = parseFloat(document.getElementById(`fare_${id}`).value), fP = parseFloat(document.getElementById(`fuel_${id}`).value), collRate = parseFloat(document.getElementById(`coll_${id}`).value); return calcWithParams(id, col, cCap, cLF, cFare, fP, collRate); }
@@ -291,7 +289,7 @@
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary Revenue</td><td class="breakdown-cell text-right">${f(res[4].anc)}</td><td class="breakdown-cell text-right">${f(res[5].anc)}</td><td class="breakdown-cell text-right">${f(res[6].anc)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Other Income</td><td class="breakdown-cell text-right">${f(res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].oinc)}</td></tr>
-                    <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
+                    <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].cogs.rnt+res[4].cogs.sal+res[4].cogs.fuel+res[4].cogs.usr+res[4].cogs.mnt+res[4].cogs.mls+res[4].cogs.dst+res[4].cogs.rmp+res[4].cogs.ocs)}</td><td class="table-cell text-right negative">${f(res[5].cogs.rnt+res[5].cogs.sal+res[5].cogs.fuel+res[5].cogs.usr+res[5].cogs.mnt+res[5].cogs.mls+res[5].cogs.dst+res[5].cogs.rmp+res[5].cogs.ocs)}</td><td class="table-cell text-right negative">${f(res[6].cogs.rnt+res[6].cogs.sal+res[6].cogs.fuel+res[6].cogs.usr+res[6].cogs.mnt+res[6].cogs.mls+res[6].cogs.dst+res[6].cogs.rmp+res[6].cogs.ocs)}</td><td class="table-cell text-right total-col negative font-bold">${f(subVal(res,'cogs','rnt')+subVal(res,'cogs','sal')+subVal(res,'cogs','fuel')+subVal(res,'cogs','usr')+subVal(res,'cogs','mnt')+subVal(res,'cogs','mls')+subVal(res,'cogs','dst')+subVal(res,'cogs','rmp')+subVal(res,'cogs','ocs'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental of aircrafts</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
@@ -301,7 +299,8 @@
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Sales & Distribution</td><td class="breakdown-cell text-right">${f(res[4].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.dst)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.dst)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">RAMP Operational costs</td><td class="breakdown-cell text-right">${f(res[4].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rmp)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rmp)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Other cost of sales</td><td class="breakdown-cell text-right">${f(res[4].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.ocs)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.ocs)}</td></tr>
-                    <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('opex')">${btn('opex')}</span>OPEX</td><td class="table-cell text-right negative">${f(res[4].totOPEX)}</td><td class="table-cell text-right negative">${f(res[5].totOPEX)}</td><td class="table-cell text-right negative">${f(res[6].totOPEX)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totOPEX'))}</td></tr>
+                    
+                    <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('opex')">${btn('opex')}</span>OPEX</td><td class="table-cell text-right negative">${f(res[4].opex.sal+res[4].opex.prm+res[4].opex.ins+res[4].opex.fee+res[4].opex.ga+res[4].opex.ope+res[4].opex.srv)}</td><td class="table-cell text-right negative">${f(res[5].opex.sal+res[5].opex.prm+res[5].opex.ins+res[5].opex.fee+res[5].opex.ga+res[5].opex.ope+res[5].opex.srv)}</td><td class="table-cell text-right negative">${f(res[6].opex.sal+res[6].opex.prm+res[6].opex.ins+res[6].opex.fee+res[6].opex.ga+res[6].opex.ope+res[6].opex.srv)}</td><td class="table-cell text-right total-col negative font-bold">${f(subVal(res,'opex','sal')+subVal(res,'opex','prm')+subVal(res,'opex','ins')+subVal(res,'opex','fee')+subVal(res,'opex','ga')+subVal(res,'opex','ope')+subVal(res,'opex','srv'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Salaries & wages</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Promotion</td><td class="breakdown-cell text-right">${f(res[4].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[5].opex.prm)}</td><td class="breakdown-cell text-right">${f(res[6].opex.prm)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Insurance</td><td class="breakdown-cell text-right">${f(res[4].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[5].opex.ins)}</td><td class="breakdown-cell text-right">${f(res[6].opex.ins)}</td></tr>
@@ -316,7 +315,7 @@
                 document.getElementById('cf_body').innerHTML = `
                     <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right font-bold">${f(b*1e6)}</td><td class="table-cell text-right font-bold">${f(c4*1e6)}</td><td class="table-cell text-right font-bold">${f(c5*1e6)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[6].cin)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold uppercase">Cash revenue collection</td><td class="breakdown-cell text-right font-black">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[6].cin - res[6].deb)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold">Cash revenue collection</td><td class="breakdown-cell text-right font-black">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[6].cin - res[6].deb)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture Inflow</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">${f(res[6].deb)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative font-bold">${f(res[4].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[5].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[6].cout)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Rental Paid</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
@@ -339,8 +338,8 @@
                     <tr class="bg-emerald-50/50"><td class="table-cell font-black text-emerald-700">Ending Cash Balance</td><td class="table-cell text-right font-black text-emerald-700">${f(c4*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c5*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c6*1e6)}</td></tr>`;
 
                 document.getElementById('break_body').innerHTML = `
-                    <tr><td class="table-cell font-black text-blue-600">Avg Fare for P&L Breakeven</td><td class="table-cell text-right font-black">${Math.round(res[4].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[5].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[6].beFare).toLocaleString()}</td></tr>
-                    <tr><td class="table-cell font-black text-indigo-600">LF for P&L Breakeven</td><td class="table-cell text-right font-black">${(res[4].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[5].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[6].beLF*100).toFixed(1)}%</td></tr>`;
+                    <tr><td class="table-cell font-black text-blue-600">Avg Fare for Breakeven</td><td class="table-cell text-right font-black">${Math.round(res[4].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[5].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[6].beFare).toLocaleString()}</td></tr>
+                    <tr><td class="table-cell font-black text-indigo-600">LF for Breakeven</td><td class="table-cell text-right font-black">${(res[4].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[5].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[6].beLF*100).toFixed(1)}%</td></tr>`;
 
                 ['4','5','6'].forEach(id => {
                     document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
@@ -380,17 +379,17 @@
                 revData.push(r / c); fixData.push(fCosts / c); varData.push(vCosts / c);
             }
 
-            // Calculate current position
             let curCap = 0, curR = 0, curF = 0, curV = 0;
             if (month === 'total') { [4,5,6].forEach(id => { const col = id === 4 ? 'J' : (id === 5 ? 'K' : 'L'); const cAt = parseFloat(document.getElementById(`cap_${id}`).value); const res = calcUnitAtCap(id, col, cAt); curCap += cAt; curR += res.netRev; curF += res.totFixed; curV += res.totVar; }); }
             else { curCap = parseFloat(document.getElementById(`cap_${month}`).value); const col = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'); const res = calcUnitAtCap(month, col, curCap); curR = res.netRev; curF = res.totFixed; curV = res.totVar; }
             
-            const curRevSeat = curR / curCap, curCostSeat = (curF + curV) / curCap, unitProfit = curRevSeat - curCostSeat;
+            const curRevSeat = curR / curCap, curFixedSeat = curF / curCap, curVarSeat = curV / curCap, curTotalCostSeat = (curF + curV) / curCap, unitProfit = curRevSeat - curTotalCostSeat;
             document.getElementById('unit-profit-val').innerText = unitProfit.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
             document.getElementById('unit-margin-card').className = unitProfit >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
             document.getElementById('unit-profit-val').className = unitProfit >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
             document.getElementById('cur-unit-rev').innerText = Math.round(curRevSeat).toLocaleString();
-            document.getElementById('cur-unit-cost').innerText = Math.round(curCostSeat).toLocaleString();
+            document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
+            document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
 
             if (unitChart) unitChart.destroy();
             unitChart = new Chart(document.getElementById('unitChart').getContext('2d'), {
