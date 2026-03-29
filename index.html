@@ -85,6 +85,7 @@
                     <div class="input-group">
                         <label class="input-label">Capacity (Seats) <span id="cap_4_val" class="label-val"></span></label>
                         <div class="flex items-center gap-3 no-export"><button onclick="stepCap('cap_4', -10000)" class="stepper-btn">−</button><input type="range" id="cap_4" min="0" max="3000000" step="1000" oninput="updateDashboard()"><button onclick="stepCap('cap_4', 10000)" class="stepper-btn">+</button></div>
+                        <span id="bg_4_diff" class="bg-tag"></span>
                     </div>
                     <div class="input-group"><label class="input-label">Load Factor (%) <span id="lf_4_val" class="label-val"></span></label><div class="flex items-center gap-3 no-export"><button onclick="step('lf_4', -0.1)" class="stepper-btn">−</button><input type="range" id="lf_4" min="0" max="100" step="0.1" oninput="updateDashboard()"><button onclick="step('lf_4', 0.1)" class="stepper-btn">+</button></div></div>
                     <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
@@ -98,6 +99,7 @@
                     <div class="input-group">
                         <label class="input-label">Capacity (Seats) <span id="cap_5_val" class="label-val"></span></label>
                         <div class="flex items-center gap-3 no-export"><button onclick="stepCap('cap_5', -10000)" class="stepper-btn">−</button><input type="range" id="cap_5" min="0" max="3000000" step="1000" oninput="updateDashboard()"><button onclick="stepCap('cap_5', 10000)" class="stepper-btn">+</button></div>
+                        <span id="bg_5_diff" class="bg-tag"></span>
                     </div>
                     <div class="input-group"><label class="input-label">Load Factor (%) <span id="lf_5_val" class="label-val"></span></label><div class="flex items-center gap-3 no-export"><button onclick="step('lf_5', -0.1)" class="stepper-btn">−</button><input type="range" id="lf_5" min="0" max="100" step="0.1" oninput="updateDashboard()"><button onclick="step('lf_5', 0.1)" class="stepper-btn">+</button></div></div>
                     <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
@@ -111,6 +113,7 @@
                     <div class="input-group">
                         <label class="input-label">Capacity (Seats) <span id="cap_6_val" class="label-val"></span></label>
                         <div class="flex items-center gap-3 no-export"><button onclick="stepCap('cap_6', -10000)" class="stepper-btn">−</button><input type="range" id="cap_6" min="0" max="3000000" step="1000" oninput="updateDashboard()"><button onclick="stepCap('cap_6', 10000)" class="stepper-btn">+</button></div>
+                        <span id="bg_6_diff" class="bg-tag"></span>
                     </div>
                     <div class="input-group"><label class="input-label">Load Factor (%) <span id="lf_6_val" class="label-val"></span></label><div class="flex items-center gap-3 no-export"><button onclick="step('lf_6', -0.1)" class="stepper-btn">−</button><input type="range" id="lf_6" min="0" max="100" step="0.1" oninput="updateDashboard()"><button onclick="step('lf_6', 0.1)" class="stepper-btn">+</button></div></div>
                     <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
@@ -354,6 +357,8 @@
                 ['4','5','6'].forEach(id => {
                     document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
                     document.getElementById(`lf_${id}_val`).innerText = document.getElementById(`lf_${id}`).value + '%';
+                    const diff = ((parseFloat(document.getElementById(`cap_${id}`).value) / budgetedSeats[id]) - 1) * 100;
+                    document.getElementById(`bg_${id}_diff`).innerText = (diff >= 0 ? '+' : '') + Math.round(diff) + '% FROM BG';
                 });
 
                 // Toggle assumptions visibility
