@@ -187,7 +187,7 @@
         <!-- Unit Analysis Tab -->
         <div id="content-unit" style="display: none;">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                <div><h2 class="text-2xl font-black text-slate-900">Unit Economics Analysis</h2><p class="text-slate-500 text-sm">Revenue vs Costs per Seat. Pinpoint indicates current capacity.</p></div>
+                <div><h2 class="text-2xl font-black text-slate-900">Unit Economics Analysis</h2><p class="text-slate-500 text-sm">Revenue vs Costs per Seat. Pinpoints indicate current capacity metrics.</p></div>
                 <div class="flex bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200 no-export">
                     <button onclick="updateUnitChart(4)" id="unit-btn-4" class="px-6 py-2 text-[10px] font-black rounded-xl transition-all">APR</button>
                     <button onclick="updateUnitChart(5)" id="unit-btn-5" class="px-6 py-2 text-[10px] font-black rounded-xl transition-all">MAY</button>
@@ -207,6 +207,7 @@
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Rev / Seat</span><span id="cur-unit-rev" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Seat</span><span id="cur-unit-fixed" class="font-mono font-bold text-red-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
                     </div>
                 </div>
             </div>
@@ -315,7 +316,7 @@
                 document.getElementById('cf_body').innerHTML = `
                     <tr><td class="table-cell font-black">Beginning Cash</td><td class="table-cell text-right font-bold">${f(b*1e6)}</td><td class="table-cell text-right font-bold">${f(c4*1e6)}</td><td class="table-cell text-right font-bold">${f(c5*1e6)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cin')">${btn('cin')}</span>Cash Inflow</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[4].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[5].cin)}</td><td class="table-cell text-right text-blue-600 font-bold">${f(res[6].cin)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold">Cash revenue collection</td><td class="breakdown-cell text-right font-black">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[6].cin - res[6].deb)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell text-red-600 font-bold uppercase">Cash revenue collection</td><td class="breakdown-cell text-right font-black">${f(res[4].cin - res[4].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[5].cin - res[5].deb)}</td><td class="breakdown-cell text-right font-black">${f(res[6].cin - res[6].deb)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cin')};"><td class="breakdown-cell">Debenture Inflow</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">0.0</td><td class="breakdown-cell text-right">${f(res[6].deb)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cout')">${btn('cout')}</span>Cash Outflow</td><td class="table-cell text-right negative font-bold">${f(res[4].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[5].cout)}</td><td class="table-cell text-right negative font-bold">${f(res[6].cout)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Rental Paid</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
@@ -365,6 +366,59 @@
             cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { layout: { padding: { top: 30 } }, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', offset: 5, color: '#000', font: { size: 10, weight: '900' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false } } } } });
         }
 
+        function renderAllMatrices() {
+            const container = document.getElementById('matrix-container'); container.innerHTML = '';
+            [4, 5, 6].forEach(id => {
+                const mName = id === 4 ? 'April' : (id === 5 ? 'May' : 'June'), cap = parseFloat(document.getElementById(`cap_${id}`).value);
+                const div = document.createElement('div');
+                div.innerHTML = `<div class="flex items-center gap-4 mb-4"><h3 class="text-xl font-black">${mName}</h3><span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">${cap.toLocaleString()} SEATS</span></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8"><div class="lg:col-span-8 card overflow-hidden !p-0 border-t-4 border-t-emerald-500"><div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-[10px] uppercase text-slate-500">Profit Matrix (NPAT MTHB)</div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_npat_${id}"></table></div></div><div class="lg:col-span-4 card overflow-hidden !p-0 border-t-4 border-t-blue-500"><div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-[10px] uppercase text-blue-600 flex justify-between"><span>Ending Cash Balance</span><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-bold">Cumulative</span></div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_cash_${id}"></table></div></div></div>`;
+                container.appendChild(div); buildMatrix(id, cap, 'npat', `matrix_npat_${id}`); buildMatrix(id, cap, 'cash', `matrix_cash_${id}`);
+            });
+        }
+
+        function getPrevMonthEndCash(month) {
+            const bgnCash = parseFloat(document.getElementById('bgn_cash_input').value) || 0;
+            if (month === 4) return bgnCash;
+            const r4 = calc(4, 'J'); const end4 = bgnCash + r4.netCash/1e6;
+            if (month === 5) return end4;
+            const r5 = calc(5, 'K'); return end4 + r5.netCash/1e6;
+        }
+
+        function buildMatrix(month, cap, mode, containerId) {
+            const container = document.getElementById(containerId), dataCol = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'), fuelPrice = parseFloat(document.getElementById(`fuel_${month}`).value) || 200, prevCash = getPrevMonthEndCash(month), coll = parseFloat(document.getElementById(`coll_${month}`).value);
+            if (mode === 'npat') {
+                const fares = []; for (let f = 5000; f >= 1800; f -= 400) fares.push(f);
+                const lfs = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+                let html = `<thead><tr><th class="matrix-header sticky left-0 z-30 text-[8px]">Fare \\ LF</th>`;
+                lfs.forEach(l => html += `<th class="matrix-header">${l}%</th>`);
+                html += `</tr></thead><tbody>`;
+                fares.forEach(f => {
+                    html += `<tr><td class="matrix-row-label !text-[8px]">${f.toLocaleString()}</td>`;
+                    lfs.forEach(l => {
+                        const val = calcWithParams(month, dataCol, cap, l/100, f, fuelPrice, coll).npat / 1e6;
+                        const isS = selectedMatrix[month] && selectedMatrix[month].f === f && selectedMatrix[month].l === l;
+                        html += `<td class="matrix-cell ${isS ? 'selected' : ''}" onclick="selectScenario(${month}, ${f}, ${l}, null)" style="background-color: rgba(${val > 0 ? '16, 185, 129' : '239, 68, 68'}, ${0.1 + Math.min(0.4, Math.abs(val)/2000)})">${Math.round(val).toLocaleString()}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                container.innerHTML = html + `</tbody>`;
+            } else {
+                const colls = [40, 50, 60, 70, 80, 90, 100], f = parseFloat(document.getElementById(`fare_${month}`).value), l = parseFloat(document.getElementById(`lf_${month}`).value);
+                let html = `<thead><tr><th class="matrix-header sticky left-0 z-30 text-[8px]">Coll%</th>`;
+                colls.forEach(c => html += `<th class="matrix-header">${c}%</th>`);
+                html += `</tr></thead><tbody><tr><td class="matrix-row-label !text-[8px]">BAL.</td>`;
+                colls.forEach(c => {
+                    let val = (calcWithParams(month, dataCol, cap, l/100, f, fuelPrice, c).netCash / 1e6) + prevCash;
+                    const isS = selectedMatrix[month] && selectedMatrix[month].c === c;
+                    html += `<td class="matrix-cell ${isS ? 'selected' : ''}" onclick="selectScenario(${month}, null, null, ${c})" style="background-color: rgba(${val > 0 ? '16, 185, 129' : '239, 68, 68'}, ${0.1 + Math.min(0.4, Math.abs(val)/2000)})">${Math.round(val).toLocaleString()}</td>`;
+                });
+                container.innerHTML = html + `</tr></tbody>`;
+            }
+        }
+
+        function selectScenario(month, f, l, c) { if (!selectedMatrix[month]) selectedMatrix[month] = {}; if (f !== null) selectedMatrix[month].f = f; if (l !== null) selectedMatrix[month].l = l; if (c !== null) selectedMatrix[month].c = c; renderAllMatrices(); }
+        function applyMatrixToDetail() { [4, 5, 6].forEach(m => { if (selectedMatrix[m]) { if (selectedMatrix[m].f) document.getElementById(`fare_${m}`).value = selectedMatrix[m].f; if (selectedMatrix[m].l) document.getElementById(`lf_${m}`).value = selectedMatrix[m].l; if (selectedMatrix[m].c) document.getElementById(`coll_${m}`).value = selectedMatrix[m].c; } }); updateDashboard(); switchTab('detail'); }
+
         function updateUnitChart(month) {
             currentUnitMonth = month;
             const ms = [4, 5, 6, 'total'];
@@ -390,6 +444,7 @@
             document.getElementById('cur-unit-rev').innerText = Math.round(curRevSeat).toLocaleString();
             document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
             document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
+            document.getElementById('cur-unit-total-cost').innerText = Math.round(curTotalCostSeat).toLocaleString();
 
             if (unitChart) unitChart.destroy();
             unitChart = new Chart(document.getElementById('unitChart').getContext('2d'), {
@@ -398,7 +453,8 @@
                     { label: 'Rev / Seat', data: revData, borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 },
                     { label: 'Fixed / Seat', data: fixData, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5,5], tension: 0.2 },
                     { label: 'Var / Seat', data: varData, borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, tension: 0.2 },
-                    { label: 'Current Pos', data: [{x: curCap, y: curRevSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#000', borderColor: '#fff', borderWidth: 2, showLine: false }
+                    { label: 'Rev Pinpoint', data: [{x: curCap, y: curRevSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#10b981', borderColor: '#fff', borderWidth: 2, showLine: false },
+                    { label: 'Cost Pinpoint', data: [{x: curCap, y: curTotalCostSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#000', borderColor: '#fff', borderWidth: 2, showLine: false }
                 ]},
                 options: {
                     maintainAspectRatio: false,
