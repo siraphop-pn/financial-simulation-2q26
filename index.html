@@ -212,7 +212,19 @@
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost / Seat</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
                     </div>
+
+                    <div class="card p-6 space-y-4 bg-slate-50/50">
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Revenue</span><span id="cur-total-rev" class="font-mono font-bold text-emerald-600 text-sm">0.0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Fixed Cost</span><span id="cur-total-fixed" class="font-mono font-bold text-red-600 text-sm">0.0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Total Var Cost</span><span id="cur-total-var" class="font-mono font-bold text-blue-600 text-sm">0.0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-200 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total MTHB Cost</span><span id="cur-total-exp" class="font-mono text-slate-900 text-sm">0.0</span></div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-xl font-black text-slate-900 mb-4 px-2">Total Economics Analysis (MTHB)</h3>
+                <div class="card !p-8 h-[500px]"><canvas id="totalChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -221,7 +233,7 @@
         Chart.register(ChartDataLabels);
         const data = {"13": {"J": 4028998382.0, "K": 3454547006.0, "L": 2830765813.0}, "27": {"J": 640871090.8, "K": 617327361.4, "L": 578925899.8}, "49": {"J": 6621629.6, "K": 6275768.7, "L": 5777752.5}, "60": {"J": 13374694.1, "K": 13587809.6, "L": 13083174.0}, "63": {"J": 1554220.6, "K": 1385200.5, "L": 1231277.0}, "65": {"J": 1499316.6, "K": 1336267.3, "L": 1187781.3}, "86": {"J": 24146303.2, "K": 21822549.0, "L": 20886651.0}, "110": {"J": 0, "K": 0, "L": 0}, "112": {"J": 491354228.9, "K": 476720113.9, "L": 487420264.3}, "134": {"J": 2649081022.7, "K": 2538837045.2, "L": 2346385759.5}, "138": {"J": 368904874.9, "K": 364015769.8, "L": 339766780.0}, "149": {"J": 698736062.6, "K": 692265900.6, "L": 705689966.0}, "189": {"J": 24017634.4, "K": 21811041.0, "L": 21924784.9}, "214": {"J": 121919786.4, "K": 103212626.3, "L": 92570821.2}, "238": {"J": 108076964.5, "K": 109904078.5, "L": 105091539.6}, "256": {"J": 35548399.1, "K": 35321931.5, "L": 35182249.3}, "292": {"J": 44593798.2, "K": 44458440.2, "L": 45163933.5}, "314": {"J": 56677758.8, "K": 54017397.3, "L": 56434879.8}, "347": {"J": 2912079.0, "K": 15000.0, "L": 16959614.0}, "361": {"J": 111551208.9, "K": 95653918.7, "L": 88256220.3}, "378": {"J": 66037754.3, "K": 49863579.6, "L": 55125168.1}, "417": {"J": 950643.0, "K": 1406938.0, "L": 1598583.0}, "434": {"J": 0, "K": 0, "L": 0}, "445": {"J": 436497689.9, "K": 449920002.2, "L": 446073331.3}, "480": {"J": 213485486.2, "K": 208676981.9, "L": 189031366.5}, "474": {"J": -3697744.5, "K": -3697744.5, "L": -3697744.5}, "492": {"J": 4425581.2, "K": 3887767.3, "L": 3702623.0}, "503": {"J": -5947735.7, "K": -4638450.9, "L": -4187725.0}, "523": {"J": -136611971.2, "K": -219364990.0, "L": -310326813.2}, "535": {"J": 2327268, "K": 2234796, "L": 2046584}};
 
-        let cashChart, marginChart, unitChart;
+        let cashChart, marginChart, unitChart, totalChart;
         let selectedMatrix = { 4: null, 5: null, 6: null };
         let breakdownState = { rev: false, cogs: false, opex: false, cin: false, cout: false, ass: false, nop: false };
         const budgetedSeats = { 4: 2391000, 5: 2179000, 6: 1962000 };
@@ -428,12 +440,14 @@
             ms.forEach(m => { const btn = document.getElementById(`unit-btn-${m}`); if (btn) btn.className = (m === month) ? 'px-6 py-2 text-[10px] font-black rounded-xl transition-all bg-white shadow text-slate-900 border border-slate-200' : 'px-6 py-2 text-[10px] font-black rounded-xl transition-all text-slate-500 hover:text-slate-700'; });
 
             const labels = [], revData = [], fixData = [], varData = [];
+            const totRevData = [], totFixData = [], totVarData = [];
             for (let c = 500000; c <= 3000000; c += 100000) {
                 labels.push(c);
                 let r = 0, fCosts = 0, vCosts = 0;
                 if (month === 'total') { [4,5,6].forEach(id => { const col = id === 4 ? 'J' : (id === 5 ? 'K' : 'L'); const res = calcUnitAtCap(id, col, c); r += res.netRev; fCosts += res.totFixed; vCosts += res.totVar; }); }
                 else { const col = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'); const res = calcUnitAtCap(month, col, c); r = res.netRev; fCosts = res.totFixed; vCosts = res.totVar; }
                 revData.push(r / c); fixData.push(fCosts / c); varData.push(vCosts / c);
+                totRevData.push(r / 1e6); totFixData.push(fCosts / 1e6); totVarData.push(vCosts / 1e6);
             }
 
             let curCap = 0, curR = 0, curF = 0, curV = 0, curSched = 0, curAncil = 0;
@@ -458,8 +472,6 @@
             document.getElementById('unit-margin-card').className = unitProfit >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
             document.getElementById('unit-profit-val').className = unitProfit >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
             
-            // Separation: Per Pax uses cPax (calculated in calcUnitAtCap which calls calcWithParams)
-            // For current pos, we need the weighted LF to get total Pax
             let curPax = 0;
             if (month === 'total') { [4,5,6].forEach(id => { curPax += parseFloat(document.getElementById(`cap_${id}`).value) * (parseFloat(document.getElementById(`lf_${id}`).value)/100); }); }
             else { curPax = curCap * (parseFloat(document.getElementById(`lf_${month}`).value)/100); }
@@ -472,6 +484,11 @@
             document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
             document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
             document.getElementById('cur-unit-total-cost').innerText = Math.round(curTotalCostSeat).toLocaleString();
+
+            document.getElementById('cur-total-rev').innerText = (curR / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            document.getElementById('cur-total-fixed').innerText = (curF / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            document.getElementById('cur-total-var').innerText = (curV / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            document.getElementById('cur-total-exp').innerText = ((curF + curV) / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
 
             if (unitChart) unitChart.destroy();
             unitChart = new Chart(document.getElementById('unitChart').getContext('2d'), {
@@ -489,14 +506,8 @@
                         x: { 
                             type: 'linear', 
                             title: { display: true, text: 'Capacity (Seats)', font: { weight: 'bold' } }, 
-                            ticks: { 
-                                callback: v => (v/1e6).toFixed(1) + 'M',
-                                stepSize: 200000
-                            },
-                            afterBuildTicks: axis => {
-                                axis.ticks.push({ value: curCap, label: (curCap/1e6).toFixed(2) + 'M*' });
-                                axis.ticks.sort((a,b) => a.value - b.value);
-                            }
+                            ticks: { callback: v => (v/1e6).toFixed(1) + 'M', stepSize: 200000 },
+                            afterBuildTicks: axis => { axis.ticks.push({ value: curCap, label: (curCap/1e6).toFixed(2) + 'M*' }); axis.ticks.sort((a,b) => a.value - b.value); }
                         },
                         y: { title: { display: true, text: 'Baht per Seat', font: { weight: 'bold' } } }
                     },
@@ -504,6 +515,34 @@
                         legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
                         datalabels: { display: false },
                         annotation: { annotations: { line1: { type: 'line', xMin: curCap, xMax: curCap, borderColor: '#000', borderWidth: 1, borderDash: [2, 2], label: { display: true, content: 'Current seats: ' + curCap.toLocaleString(), position: 'end', backgroundColor: 'rgba(0,0,0,0.8)', color: '#fff', font: { size: 10, weight: 'bold' } } } } }
+                    }
+                }
+            });
+
+            if (totalChart) totalChart.destroy();
+            totalChart = new Chart(document.getElementById('totalChart').getContext('2d'), {
+                type: 'line',
+                data: { labels: labels, datasets: [
+                    { label: 'Total Revenue (MTHB)', data: totRevData, borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 },
+                    { label: 'Total Fixed (MTHB)', data: totFixData, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5,5], tension: 0.2 },
+                    { label: 'Total Var (MTHB)', data: totVarData, borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, tension: 0.2 },
+                    { label: 'Rev Pinpoint', data: [{x: curCap, y: curR/1e6}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#10b981', borderColor: '#fff', borderWidth: 2, showLine: false },
+                    { label: 'Cost Pinpoint', data: [{x: curCap, y: (curF+curV)/1e6}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#000', borderColor: '#fff', borderWidth: 2, showLine: false }
+                ]},
+                options: {
+                    maintainAspectRatio: false,
+                    scales: { 
+                        x: { 
+                            type: 'linear', 
+                            title: { display: true, text: 'Capacity (Seats)', font: { weight: 'bold' } }, 
+                            ticks: { callback: v => (v/1e6).toFixed(1) + 'M', stepSize: 200000 },
+                            afterBuildTicks: axis => { axis.ticks.push({ value: curCap, label: (curCap/1e6).toFixed(2) + 'M*' }); axis.ticks.sort((a,b) => a.value - b.value); }
+                        },
+                        y: { title: { display: true, text: 'MTHB', font: { weight: 'bold' } } }
+                    },
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
+                        datalabels: { display: false }
                     }
                 }
             });
