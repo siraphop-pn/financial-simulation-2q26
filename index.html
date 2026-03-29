@@ -138,22 +138,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] text-slate-600 leading-relaxed">
                     <div class="space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="font-black text-blue-600 uppercase mb-2 text-[10px]">1. Revenue & Variable COS</div>
-                            <b>Variable Items:</b> Fare, Ancillary, and Scheduled Flight revenue scale directly with Pax. COS items like Fuel, User Charges, and Station fees are treated as <b>Variable Costs</b> scaling with flown capacity. Fuel is adjusted by the input index (Base 200). Distribution is 3% of Net Revenue.
+                            <div class="font-black text-blue-600 uppercase mb-2 text-[10px]">P&L Assumptions</div>
+                            <b>Revenue:</b> Ancillary assumes 15% of Ticket+Ancillary total. Sales & Distribution is 3% of sales.<br>
+                            <b>COS Logic:</b> Salaries & Wages fixed at 100 MTHB/mo (rest float). Fuel, User Charges, and Meals fully float with capacity. Maintenance is fully fixed. RAMP costs fixed at 20 MTHB/mo (rest float). Other COS fixed at ~4 MTHB/mo (rest float).<br>
+                            <b>OPEX Logic:</b> Salaries fixed at ~45 MTHB/mo. Publicity at ~1.5% of sales. Insurance fixed (2.9/0.015/17 MTHB). Fees fixed at ~50 MTHB/mo (rest float). G&A fixed (~50-66 MTHB). Other OPEX fixed (~1-1.5 MTHB). Services none.
                         </div>
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="font-black text-indigo-600 uppercase mb-2 text-[10px]">2. Semi-Fixed & Fixed Costs</div>
-                            <b>Semi-Fixed:</b> Maintenance & Overhaul scales with flown capacity assuming existing fleet utilization. Ramp operational costs are also semi-fixed (80% variable). <b>Fixed Costs:</b> Aircraft Rental, Salaries (Admin), Insurance, and G&A are treated as fixed monthly obligations regardless of capacity changes.
+                            <div class="font-black text-indigo-600 uppercase mb-2 text-[10px]">Non-OPEX & FX</div>
+                            <b>FX Gain/Loss:</b> Realised portion fixed at gain of ~4-6 MTHB for April-June period.
                         </div>
                     </div>
                     <div class="space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="font-black text-emerald-600 uppercase mb-2 text-[10px]">3. Cash Flow Dynamics</div>
-                            Cash inflow is derived from the monthly collection rate applied to Net Revenue. Debenture inflow of 1,500M THB is added specifically in June. Cash outflows assume 100% of P&L expenses (except D&A) are paid within the month to show immediate liquidity impact.
+                            <div class="font-black text-emerald-600 uppercase mb-2 text-[10px]">Cash Inflow Logic</div>
+                            <b>Cash Revenue:</b> Calculated using the assumed % collection rate applied to total revenue. <br>
+                            <b>Liquidity:</b> Debenture assume 1.5 BTHB incoming in June specifically.
                         </div>
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="font-black text-purple-600 uppercase mb-2 text-[10px]">4. Liquidity Rollover Logic</div>
-                            Ending cash is strictly cumulative. April starts with BGN cash (1,200M). May beginning cash equals April ending cash. June beginning cash equals May ending cash. This ensures the "Strategic Matrix" correctly reflects the actual bank balance at each month-end.
+                            <div class="font-black text-purple-600 uppercase mb-2 text-[10px]">Cash Outflow Logic</div>
+                            <b>Payments:</b> All items follow P&L logic except:<br>
+                            1. <b>Maintenance:</b> Only paying for flying capacity at existing utilization rate.<br>
+                            2. <b>Fees:</b> Only paying 50 MTHB base; remaining brand license fees are assumed not paid.
                         </div>
                     </div>
                 </div>
