@@ -43,6 +43,7 @@
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-900">
     <div id="dashboard-content" class="max-w-7xl mx-auto bg-slate-50 p-4 rounded-xl">
+        <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 border-b border-slate-200 pb-8">
             <div>
                 <div class="flex items-center gap-3 mb-6">
@@ -90,7 +91,7 @@
                     <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fare</label><input type="number" id="fare_4" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Fuel</label><input type="number" id="fuel_4" value="200" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
-                        <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
+                        <div><label class="text-[9px) font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
                 <!-- May Card -->
@@ -187,7 +188,7 @@
         function renderAllMatrices() {
             const container = document.getElementById('matrix-container'); container.innerHTML = '';
             [4, 5, 6].forEach(id => {
-                const mName = id === 4 ? 'April' : (id === 5 ? 'May' : 'June'), cap = parseFloat(document.getElementById(`cap_${id}`).value);
+                const mName = id === 4 ? 'April' : (id === 5 ? 'May' : (id === 6 ? 'June' : '')), cap = parseFloat(document.getElementById(`cap_${id}`).value);
                 const div = document.createElement('div');
                 div.innerHTML = `<div class="flex items-center gap-4 mb-4"><h3 class="text-xl font-black">${mName}</h3><span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase">${cap.toLocaleString()} SEATS</span></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8"><div class="lg:col-span-8 card overflow-hidden !p-0 border-t-4 border-t-emerald-500"><div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-[10px] uppercase text-slate-500">Profit Matrix (NPAT MTHB)</div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_npat_${id}"></table></div></div><div class="lg:col-span-4 card overflow-hidden !p-0 border-t-4 border-t-blue-500"><div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-[10px] uppercase text-blue-600 flex justify-between"><span>Ending Cash Balance</span><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-bold">Cumulative</span></div><div class="overflow-x-auto"><table class="w-full text-[9px] border-collapse" id="matrix_cash_${id}"></table></div></div></div>`;
                 container.appendChild(div); buildMatrix(id, cap, 'npat', `matrix_npat_${id}`); buildMatrix(id, cap, 'cash', `matrix_cash_${id}`);
@@ -266,7 +267,6 @@
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries-COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Fuel and Oil</td><td class="breakdown-cell text-right">${f(res[4].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.fuel)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.fuel)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Maintenance</td><td class="breakdown-cell text-right">${f(res[4].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.mnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.mnt)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('opex')">${btn('opex')}</span>OPEX</td><td class="table-cell text-right negative">${f(res[4].totOPEX)}</td><td class="table-cell text-right negative">${f(res[5].totOPEX)}</td><td class="table-cell text-right negative">${f(res[6].totOPEX)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totOPEX'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('opex')};"><td class="breakdown-cell">Salaries-Admin</td><td class="breakdown-cell text-right">${f(res[4].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[5].opex.sal)}</td><td class="breakdown-cell text-right">${f(res[6].opex.sal)}</td></tr>
                     <tr class="bg-blue-50/50"><td class="table-cell font-black text-blue-700">Profit After Tax (NPAT)</td><td class="table-cell text-right font-black text-blue-700">${f(res[4].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[5].npat)}</td><td class="table-cell text-right font-black text-blue-700">${f(res[6].npat)}</td><td class="table-cell text-right total-col font-black text-blue-700">${f(tot('npat'))}</td></tr>`;
