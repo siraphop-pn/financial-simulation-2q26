@@ -79,7 +79,7 @@
 
         <div id="content-detail">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <!-- April Card -->
+                <!-- Monthly Cards -->
                 <div class="card border-t-4 border-t-blue-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">April</h2>
                     <div class="input-group">
@@ -93,7 +93,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_4" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- May Card -->
                 <div class="card border-t-4 border-t-indigo-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">May</h2>
                     <div class="input-group">
@@ -107,7 +106,6 @@
                         <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1 text-center">Coll.%</label><input type="number" id="coll_5" value="50" oninput="updateDashboard()" class="editable-red !p-1.5 !text-xs text-center w-full"></div>
                     </div>
                 </div>
-                <!-- June Card -->
                 <div class="card border-t-4 border-t-purple-500 !p-5">
                     <h2 class="text-xl font-black text-slate-800 mb-6">June</h2>
                     <div class="input-group">
@@ -263,7 +261,6 @@
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary Revenue</td><td class="breakdown-cell text-right">${f(res[4].anc)}</td><td class="breakdown-cell text-right">${f(res[5].anc)}</td><td class="breakdown-cell text-right">${f(res[6].anc)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Other Income</td><td class="breakdown-cell text-right">${f(res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].oinc)}</td></tr>
-                    
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].totCOGS)}</td><td class="table-cell text-right negative">${f(res[5].totCOGS)}</td><td class="table-cell text-right negative">${f(res[6].totCOGS)}</td><td class="table-cell text-right total-col negative font-bold">${f(tot('totCOGS'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental of aircrafts</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Salaries & wages - COS</td><td class="breakdown-cell text-right">${f(res[4].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.sal)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.sal)}</td></tr>
@@ -313,6 +310,10 @@
                     <tr class="breakdown-row" style="display:${disp('cout')};"><td class="breakdown-cell">Interest expense</td><td class="breakdown-cell text-right">${f(res[4].netInt)}</td><td class="breakdown-cell text-right">${f(res[5].netInt)}</td><td class="breakdown-cell text-right">${f(res[6].netInt)}</td></tr>
                     <tr class="bg-emerald-50/50"><td class="table-cell font-black text-emerald-700">Ending Cash Balance</td><td class="table-cell text-right font-black text-emerald-700">${f(c4*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c5*1e6)}</td><td class="table-cell text-right font-black text-emerald-700">${f(c6*1e6)}</td></tr>`;
 
+                document.getElementById('break_body').innerHTML = `
+                    <tr><td class="table-cell font-black text-blue-600">Avg Fare for P&L Breakeven</td><td class="table-cell text-right font-black">${Math.round(res[4].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[5].beFare).toLocaleString()}</td><td class="table-cell text-right font-black">${Math.round(res[6].beFare).toLocaleString()}</td></tr>
+                    <tr><td class="table-cell font-black text-indigo-600">LF for P&L Breakeven</td><td class="table-cell text-right font-black">${(res[4].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[5].beLF*100).toFixed(1)}%</td><td class="table-cell text-right font-black">${(res[6].beLF*100).toFixed(1)}%</td></tr>`;
+
                 ['4','5','6'].forEach(id => {
                     document.getElementById(`cap_${id}_val`).innerText = parseFloat(document.getElementById(`cap_${id}`).value).toLocaleString();
                     document.getElementById(`lf_${id}_val`).innerText = document.getElementById(`lf_${id}`).value + '%';
@@ -325,12 +326,12 @@
             const ctx1 = document.getElementById('marginChart').getContext('2d'), ctx2 = document.getElementById('cashChart').getContext('2d');
             const m = [res[4].npat/res[4].netRev*100, res[5].npat/res[5].netRev*100, res[6].npat/res[6].netRev*100];
             if (marginChart) marginChart.destroy();
-            marginChart = new Chart(ctx1, { type: 'bar', data: { labels: ['Apr', 'May', 'Jun'], datasets: [{ data: m, backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { layout: { padding: { top: 30 } }, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', offset: 5, color: '#6b21a8', font: { size: 11, weight: '900' }, formatter: v => v.toFixed(1)+'%' }, legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false } } } } });
+            marginChart = new Chart(ctx1, { type: 'bar', data: { labels: ['Apr', 'May', 'Jun'], datasets: [{ data: m, backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { layout: { padding: { top: 30 } }, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', offset: 5, color: '#000', font: { size: 11, weight: '900' }, formatter: v => v.toFixed(1)+'%' }, legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false } } } } });
 
             const b = parseFloat(document.getElementById('bgn_cash_input').value);
             const d = [b, b + res[4].netCash/1e6, b + (res[4].netCash+res[5].netCash)/1e6, b + (res[4].netCash+res[5].netCash+res[6].netCash)/1e6];
             if (cashChart) cashChart.destroy();
-            cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { layout: { padding: { top: 30 } }, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', offset: 5, color: '#1e40af', font: { size: 10, weight: '900' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false } } } } });
+            cashChart = new Chart(ctx2, { type: 'line', data: { labels: ['Start', 'Apr', 'May', 'Jun'], datasets: [{ data: d, borderColor: '#2563eb', fill: true, tension: 0.4, backgroundColor: 'rgba(37, 99, 235, 0.05)' }] }, options: { layout: { padding: { top: 30 } }, maintainAspectRatio: false, plugins: { datalabels: { display: true, anchor: 'end', align: 'top', offset: 5, color: '#000', font: { size: 10, weight: '900' }, formatter: v => Math.round(v).toLocaleString() }, legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false } } } } });
         }
 
         function step(id, delta) { const i = document.getElementById(id); i.value = Math.max(0, Math.min(100, parseFloat(i.value) + delta)).toFixed(1); updateDashboard(); }
