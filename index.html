@@ -205,10 +205,12 @@
                     </div>
                     <div class="card p-6 space-y-4">
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fare per seat</span><span id="cur-unit-fare" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">ancil RPP</span><span id="cur-unit-ancil" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Ancil per seat</span><span id="cur-unit-ancil-seat" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fare per pax</span><span id="cur-unit-fare-pax" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Ancil per pax (RPP)</span><span id="cur-unit-ancil-pax" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Seat</span><span id="cur-unit-fixed" class="font-mono font-bold text-red-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
-                        <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost / Seat</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
                     </div>
                 </div>
             </div>
@@ -455,8 +457,18 @@
             document.getElementById('unit-profit-val').innerText = unitProfit.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
             document.getElementById('unit-margin-card').className = unitProfit >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
             document.getElementById('unit-profit-val').className = unitProfit >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
+            
+            // Separation: Per Pax uses cPax (calculated in calcUnitAtCap which calls calcWithParams)
+            // For current pos, we need the weighted LF to get total Pax
+            let curPax = 0;
+            if (month === 'total') { [4,5,6].forEach(id => { curPax += parseFloat(document.getElementById(`cap_${id}`).value) * (parseFloat(document.getElementById(`lf_${id}`).value)/100); }); }
+            else { curPax = curCap * (parseFloat(document.getElementById(`lf_${month}`).value)/100); }
+
             document.getElementById('cur-unit-fare').innerText = Math.round(curSched / curCap).toLocaleString();
-            document.getElementById('cur-unit-ancil').innerText = Math.round(curAncil / curCap).toLocaleString();
+            document.getElementById('cur-unit-ancil-seat').innerText = Math.round(curAncil / curCap).toLocaleString();
+            document.getElementById('cur-unit-fare-pax').innerText = Math.round(curSched / curPax).toLocaleString();
+            document.getElementById('cur-unit-ancil-pax').innerText = Math.round(curAncil / curPax).toLocaleString();
+            
             document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
             document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
             document.getElementById('cur-unit-total-cost').innerText = Math.round(curTotalCostSeat).toLocaleString();
@@ -491,7 +503,7 @@
                     plugins: { 
                         legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
                         datalabels: { display: false },
-                        annotation: { annotations: { line1: { type: 'line', xMin: curCap, xMax: curCap, borderColor: '#000', borderWidth: 1, borderDash: [2, 2], label: { display: true, content: 'Current: ' + curCap.toLocaleString(), position: 'end', backgroundColor: 'rgba(0,0,0,0.8)', color: '#fff', font: { size: 10, weight: 'bold' } } } } }
+                        annotation: { annotations: { line1: { type: 'line', xMin: curCap, xMax: curCap, borderColor: '#000', borderWidth: 1, borderDash: [2, 2], label: { display: true, content: 'Current seats: ' + curCap.toLocaleString(), position: 'end', backgroundColor: 'rgba(0,0,0,0.8)', color: '#fff', font: { size: 10, weight: 'bold' } } } } }
                     }
                 }
             });
