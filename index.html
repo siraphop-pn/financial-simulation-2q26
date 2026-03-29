@@ -204,7 +204,8 @@
                         <span class="text-xs font-bold text-slate-500">BAHT / SEAT</span>
                     </div>
                     <div class="card p-6 space-y-4">
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Rev / Seat</span><span id="cur-unit-rev" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fare per seat</span><span id="cur-unit-fare" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">ancil RPP</span><span id="cur-unit-ancil" class="font-mono font-bold text-emerald-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Seat</span><span id="cur-unit-fixed" class="font-mono font-bold text-red-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
@@ -433,15 +434,29 @@
                 revData.push(r / c); fixData.push(fCosts / c); varData.push(vCosts / c);
             }
 
-            let curCap = 0, curR = 0, curF = 0, curV = 0;
-            if (month === 'total') { [4,5,6].forEach(id => { const col = id === 4 ? 'J' : (id === 5 ? 'K' : 'L'); const cAt = parseFloat(document.getElementById(`cap_${id}`).value); const res = calcUnitAtCap(id, col, cAt); curCap += cAt; curR += res.netRev; curF += res.totFixed; curV += res.totVar; }); }
-            else { curCap = parseFloat(document.getElementById(`cap_${month}`).value); const col = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'); const res = calcUnitAtCap(month, col, curCap); curR = res.netRev; curF = res.totFixed; curV = res.totVar; }
+            let curCap = 0, curR = 0, curF = 0, curV = 0, curSched = 0, curAncil = 0;
+            if (month === 'total') { 
+                [4,5,6].forEach(id => { 
+                    const col = id === 4 ? 'J' : (id === 5 ? 'K' : 'L'); 
+                    const cAt = parseFloat(document.getElementById(`cap_${id}`).value); 
+                    const res = calcUnitAtCap(id, col, cAt); 
+                    curCap += cAt; curR += res.netRev; curF += res.totFixed; curV += res.totVar;
+                    curSched += res.sched; curAncil += res.anc;
+                }); 
+            } else { 
+                curCap = parseFloat(document.getElementById(`cap_${month}`).value); 
+                const col = month === 4 ? 'J' : (month === 5 ? 'K' : 'L'); 
+                const res = calcUnitAtCap(month, col, curCap); 
+                curR = res.netRev; curF = res.totFixed; curV = res.totVar;
+                curSched = res.sched; curAncil = res.anc;
+            }
             
             const curRevSeat = curR / curCap, curFixedSeat = curF / curCap, curVarSeat = curV / curCap, curTotalCostSeat = (curF + curV) / curCap, unitProfit = curRevSeat - curTotalCostSeat;
             document.getElementById('unit-profit-val').innerText = unitProfit.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
             document.getElementById('unit-margin-card').className = unitProfit >= 0 ? 'card text-center p-8 bg-emerald-50 border-emerald-200' : 'card text-center p-8 bg-red-50 border-red-200';
             document.getElementById('unit-profit-val').className = unitProfit >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
-            document.getElementById('cur-unit-rev').innerText = Math.round(curRevSeat).toLocaleString();
+            document.getElementById('cur-unit-fare').innerText = Math.round(curSched / curCap).toLocaleString();
+            document.getElementById('cur-unit-ancil').innerText = Math.round(curAncil / curCap).toLocaleString();
             document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
             document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
             document.getElementById('cur-unit-total-cost').innerText = Math.round(curTotalCostSeat).toLocaleString();
@@ -454,18 +469,29 @@
                     { label: 'Fixed / Seat', data: fixData, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5,5], tension: 0.2 },
                     { label: 'Var / Seat', data: varData, borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, tension: 0.2 },
                     { label: 'Rev Pinpoint', data: [{x: curCap, y: curRevSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#10b981', borderColor: '#fff', borderWidth: 2, showLine: false },
-                    { label: 'Cost Pinpoint', data: [{x: curCap, y: curTotalCostSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#000', borderColor: '#fff', borderWidth: 2, showLine: false }
+                    { label: 'Total Cost / Seat', data: [{x: curCap, y: curTotalCostSeat}], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#000', borderColor: '#fff', borderWidth: 2, showLine: false }
                 ]},
                 options: {
                     maintainAspectRatio: false,
                     scales: { 
-                        x: { type: 'linear', title: { display: true, text: 'Capacity (Seats)', font: { weight: 'bold' } }, ticks: { callback: v => (v/1e6).toFixed(1) + 'M' } },
+                        x: { 
+                            type: 'linear', 
+                            title: { display: true, text: 'Capacity (Seats)', font: { weight: 'bold' } }, 
+                            ticks: { 
+                                callback: v => (v/1e6).toFixed(1) + 'M',
+                                stepSize: 200000
+                            },
+                            afterBuildTicks: axis => {
+                                axis.ticks.push({ value: curCap, label: (curCap/1e6).toFixed(2) + 'M*' });
+                                axis.ticks.sort((a,b) => a.value - b.value);
+                            }
+                        },
                         y: { title: { display: true, text: 'Baht per Seat', font: { weight: 'bold' } } }
                     },
                     plugins: { 
                         legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
                         datalabels: { display: false },
-                        annotation: { annotations: { line1: { type: 'line', xMin: curCap, xMax: curCap, borderColor: '#000', borderWidth: 1, borderDash: [2, 2], label: { display: true, content: 'Current Capacity', position: 'end', font: { size: 9, weight: 'bold' } } } } }
+                        annotation: { annotations: { line1: { type: 'line', xMin: curCap, xMax: curCap, borderColor: '#000', borderWidth: 1, borderDash: [2, 2], label: { display: true, content: 'Current: ' + curCap.toLocaleString(), position: 'end', backgroundColor: 'rgba(0,0,0,0.8)', color: '#fff', font: { size: 10, weight: 'bold' } } } } }
                     }
                 }
             });
