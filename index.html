@@ -150,7 +150,7 @@
                     <div class="space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                             <div class="font-black text-blue-600 uppercase mb-2 text-[10px]">P&L Assumptions</div>
-                            <b>Revenue:</b> Ancillary assumes 15% of Ticket+Ancillary total. Sales & Distribution is 3% of sales.<br>
+                            <b>Revenue:</b> Ancillary assumes <span id="ass_ancil_val" class="font-bold text-indigo-600">15</span>% of Ticket+Ancillary total. Sales & Distribution is 3% of sales.<br>
                             <b>COS Logic:</b> Salaries & Wages fixed at 100 MTHB/mo (rest float). Fuel, User Charges, and Meals fully float with capacity. Maintenance is fully fixed. RAMP costs fixed at 20 MTHB/mo (rest float). Other COS fixed at ~4 MTHB/mo (rest float).<br>
                             <b>OPEX Logic:</b> Salaries fixed at ~45 MTHB/mo. Publicity at ~1.5% of sales. Insurance fixed (2.9/0.015/17 MTHB). Fees fixed at ~50 MTHB/mo (rest float). G&A fixed (~50-66 MTHB). Other OPEX fixed (~1-1.5 MTHB). Services none.
                         </div>
@@ -310,9 +310,12 @@
         let breakdownState = { rev: false, cogs: false, opex: false, cin: false, cout: false, ass: false, nop: false };
         const budgetedSeats = { 4: 2391000, 5: 2179000, 6: 1962000 };
         let currentUnitMonth = 4;
+        let ancilPct = 15;
 
         function updateAllColls() { const val = document.getElementById('bgn_coll_input').value; [4,5,6].forEach(id => document.getElementById(`coll_${id}`).value = val); updateDashboard(); if (document.getElementById('content-timing').style.display === 'block') updateTimingChart(); }
         
+        function updateAncilPct(val) { ancilPct = parseFloat(val); updateDashboard(); }
+
         function switchTab(tab) {
             document.getElementById('content-detail').style.display = tab === 'detail' ? 'block' : 'none';
             document.getElementById('content-graph').style.display = tab === 'graph' ? 'block' : 'none';
@@ -330,7 +333,7 @@
 
         function calcWithParams(id, col, cCap, cLF, cFare, fP, collRate) {
             const bCap = data[535][col], cPax = cCap * cLF, sched = cPax * cFare;
-            const anc = (0.15 / 0.85) * sched, oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
+            const anc = (ancilPct / 100) / (1 - (ancilPct / 100)) * sched, oinc = scale(data[86][col], bCap, cCap, 1), netRev = sched + anc + oinc;
             const fCosts = {
                 salBase: 100e6, rampBase: 20e6, ocsBase: 4e6, feeBase: 50e6,
                 rnt: 0,
@@ -386,7 +389,7 @@
                 document.getElementById('pl_body').innerHTML = `
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('rev')">${btn('rev')}</span>Net Revenue</td><td class="table-cell text-right">${f(res[4].netRev)}</td><td class="table-cell text-right">${f(res[5].netRev)}</td><td class="table-cell text-right">${f(res[6].netRev)}</td><td class="table-cell text-right total-col font-bold">${f(tot('netRev'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Scheduled Flight</td><td class="breakdown-cell text-right">${f(res[4].sched)}</td><td class="breakdown-cell text-right">${f(res[5].sched)}</td><td class="breakdown-cell text-right">${f(res[6].sched)}</td></tr>
-                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Ancillary Revenue</td><td class="breakdown-cell text-right">${f(res[4].anc)}</td><td class="breakdown-cell text-right">${f(res[5].anc)}</td><td class="breakdown-cell text-right">${f(res[6].anc)}</td></tr>
+                    <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell flex items-center gap-2">Ancillary Revenue <div class="flex items-center gap-1 bg-slate-100 rounded px-1.5 py-0.5 border border-slate-200"><input type="number" value="${ancilPct}" onchange="updateAncilPct(this.value)" class="w-8 bg-transparent border-0 p-0 text-[10px] font-black text-indigo-600 focus:ring-0 text-center">%</div></td><td class="breakdown-cell text-right">${f(res[4].anc)}</td><td class="breakdown-cell text-right">${f(res[5].anc)}</td><td class="breakdown-cell text-right">${f(res[6].anc)}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('rev')};"><td class="breakdown-cell">Other Income</td><td class="breakdown-cell text-right">${f(res[4].oinc)}</td><td class="breakdown-cell text-right">${f(res[5].oinc)}</td><td class="breakdown-cell text-right">${f(res[6].oinc)}</td></tr>
                     <tr><td class="table-cell font-black"><span class="expand-btn" onclick="toggleBreakdown('cogs')">${btn('cogs')}</span>COGS</td><td class="table-cell text-right negative">${f(res[4].cogs.rnt+res[4].cogs.sal+res[4].cogs.fuel+res[4].cogs.usr+res[4].cogs.mnt+res[4].cogs.mls+res[4].cogs.dst+res[4].cogs.rmp+res[4].cogs.ocs)}</td><td class="table-cell text-right negative">${f(res[5].cogs.rnt+res[5].cogs.sal+res[5].cogs.fuel+res[5].cogs.usr+res[5].cogs.mnt+res[5].cogs.mls+res[5].cogs.dst+res[5].cogs.rmp+res[5].cogs.ocs)}</td><td class="table-cell text-right negative">${f(res[6].cogs.rnt+res[6].cogs.sal+res[6].cogs.fuel+res[6].cogs.usr+res[6].cogs.mnt+res[6].cogs.mls+res[6].cogs.dst+res[6].cogs.rmp+res[6].cogs.ocs)}</td><td class="table-cell text-right total-col negative font-bold">${f(subVal(res,'cogs','rnt')+subVal(res,'cogs','sal')+subVal(res,'cogs','fuel')+subVal(res,'cogs','usr')+subVal(res,'cogs','mnt')+subVal(res,'cogs','mls')+subVal(res,'cogs','dst')+subVal(res,'cogs','rmp')+subVal(res,'cogs','ocs'))}</td></tr>
                     <tr class="breakdown-row" style="display:${disp('cogs')};"><td class="breakdown-cell">Rental of aircrafts</td><td class="breakdown-cell text-right">${f(res[4].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[5].cogs.rnt)}</td><td class="breakdown-cell text-right">${f(res[6].cogs.rnt)}</td></tr>
@@ -457,7 +460,11 @@
                 });
 
                 const assBox = document.getElementById('ass_content');
-                if (assBox) { assBox.style.display = breakdownState.ass ? 'grid' : 'none'; document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+'; }
+                if (assBox) { 
+                    assBox.style.display = breakdownState.ass ? 'grid' : 'none'; 
+                    document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+'; 
+                    document.getElementById('ass_ancil_val').innerText = ancilPct;
+                }
                 renderCharts(res);
                 if (document.getElementById('content-timing').style.display === 'block') updateTimingChart();
             } catch (e) { console.error(e); }
