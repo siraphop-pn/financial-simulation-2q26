@@ -54,9 +54,10 @@
                 </div>
                 <div class="tab-container no-export">
                     <button onclick="switchTab('detail')" id="tab-detail" class="tab-btn tab-active">📊 Simulation</button>
-                    <button onclick="switchTab('graph')" id="tab-graph" class="tab-btn tab-inactive">🎯 Matrix</button>
+                    <button onclick="switchTab('graph')" id="tab-graph" class="tab-btn tab-inactive">📊 Matrix</button>
                     <button onclick="switchTab('unit')" id="tab-unit" class="tab-btn tab-inactive">📈 Unit Analysis</button>
-                </div>
+                    <button onclick="switchTab('timing')" id="tab-timing" class="tab-btn tab-inactive">⏳ Liquidity Timing</button>
+                    </div>
             </div>
             <div class="flex items-center gap-3">
                 <div class="bg-white shadow-sm border border-slate-200 px-5 py-3 rounded-xl min-w-[180px]">
@@ -235,29 +236,94 @@
                 </div>
             </div>
         </div>
+
+        <!-- Liquidity Timing Tab -->
+        <div id="content-timing" style="display: none;">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Liquidity Timing Analysis</h2>
+                    <p class="text-slate-500 text-sm">Comparing P&L Recognition vs. Cash Receipt from Forward Bookings.</p>
+                </div>
+                <div class="flex items-center gap-4 bg-slate-100 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-slate-400 uppercase mb-1">Advance Booking %</span>
+                        <div class="flex items-center gap-2">
+                            <input type="range" id="adv_booking_input" min="0" max="100" value="50" oninput="updateTimingChart()" class="w-32 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                            <span id="adv_booking_val" class="font-mono font-bold text-indigo-600 text-sm w-10">50%</span>
+                        </div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-300"></div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-slate-400 uppercase mb-1">July Capacity Outlook</span>
+                        <input type="number" id="july_cap_input" value="2000000" oninput="updateTimingChart()" class="bg-transparent font-mono font-bold text-slate-900 text-sm w-24 focus:ring-0 border-0 p-0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+                <div class="lg:col-span-8 card !p-8 h-[500px]">
+                    <h3 class="text-sm font-black text-slate-400 uppercase mb-4">Net Cash Inflow Comparison (MTHB)</h3>
+                    <canvas id="timingChart"></canvas>
+                </div>
+                <div class="lg:col-span-4 space-y-6">
+                    <div id="liquidity-delta-card" class="card p-8 flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] font-black text-slate-400 uppercase block mb-2">Cumulative Liquidity Delta</span>
+                        <div id="liquidity-delta-val" class="text-4xl font-black mb-1">0.0</div>
+                        <span class="text-xs font-bold text-slate-500">MTHB vs. STANDARD MODEL</span>
+                        <p class="text-[10px] text-slate-400 mt-4 leading-tight italic">A negative delta means forward bookings are drying up due to capacity contraction.</p>
+                    </div>
+                    
+                    <div class="card p-6 space-y-4">
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Standard Cash (Apr-Jun)</span><span id="timing-std-cash" class="font-mono font-bold text-slate-600 text-sm">0.0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Adjusted Cash (Apr-Jun)</span><span id="timing-adj-cash" class="font-mono font-bold text-indigo-600 text-sm">0.0</span></div>
+                        <div class="border-t border-slate-100 pt-4">
+                            <div class="flex justify-between items-center mb-2"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">June End-Cash (Std)</span><span id="timing-june-end-std" class="font-mono font-bold text-slate-600 text-sm">0.0</span></div>
+                            <div class="flex justify-between items-center font-black"><span class="text-[10px] uppercase text-slate-900 text-xs">June End-Cash (Adj)</span><span id="timing-june-end-adj" class="font-mono text-indigo-700">0.0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card overflow-hidden !p-0">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200">
+                            <th class="p-4 text-[10px] font-black uppercase text-slate-500">Metric (MTHB)</th>
+                            <th class="p-4 text-[10px] font-black uppercase text-slate-500 text-right">April</th>
+                            <th class="p-4 text-[10px] font-black uppercase text-slate-500 text-right">May</th>
+                            <th class="p-4 text-[10px] font-black uppercase text-slate-500 text-right">June</th>
+                            <th class="p-4 text-[10px] font-black uppercase text-slate-500 text-right bg-indigo-50/50">Total 2Q</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timing_table_body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
         Chart.register(ChartDataLabels);
         const data = {"13": {"J": 4028998382.0, "K": 3454547006.0, "L": 2830765813.0}, "27": {"J": 640871090.8, "K": 617327361.4, "L": 578925899.8}, "49": {"J": 6621629.6, "K": 6275768.7, "L": 5777752.5}, "60": {"J": 13374694.1, "K": 13587809.6, "L": 13083174.0}, "63": {"J": 1554220.6, "K": 1385200.5, "L": 1231277.0}, "65": {"J": 1499316.6, "K": 1336267.3, "L": 1187781.3}, "86": {"J": 24146303.2, "K": 21822549.0, "L": 20886651.0}, "110": {"J": 0, "K": 0, "L": 0}, "112": {"J": 491354228.9, "K": 476720113.9, "L": 487420264.3}, "134": {"J": 2649081022.7, "K": 2538837045.2, "L": 2346385759.5}, "138": {"J": 368904874.9, "K": 364015769.8, "L": 339766780.0}, "149": {"J": 698736062.6, "K": 692265900.6, "L": 705689966.0}, "189": {"J": 24017634.4, "K": 21811041.0, "L": 21924784.9}, "214": {"J": 121919786.4, "K": 103212626.3, "L": 92570821.2}, "238": {"J": 108076964.5, "K": 109904078.5, "L": 105091539.6}, "256": {"J": 35548399.1, "K": 35321931.5, "L": 35182249.3}, "292": {"J": 44593798.2, "K": 44458440.2, "L": 45163933.5}, "314": {"J": 56677758.8, "K": 54017397.3, "L": 56434879.8}, "347": {"J": 2912079.0, "K": 15000.0, "L": 16959614.0}, "361": {"J": 111551208.9, "K": 95653918.7, "L": 88256220.3}, "378": {"J": 66037754.3, "K": 49863579.6, "L": 55125168.1}, "417": {"J": 950643.0, "K": 1406938.0, "L": 1598583.0}, "434": {"J": 0, "K": 0, "L": 0}, "445": {"J": 436497689.9, "K": 449920002.2, "L": 446073331.3}, "480": {"J": 213485486.2, "K": 208676981.9, "L": 189031366.5}, "474": {"J": -3697744.5, "K": -3697744.5, "L": -3697744.5}, "492": {"J": 4425581.2, "K": 3887767.3, "L": 3702623.0}, "503": {"J": -5947735.7, "K": -4638450.9, "L": -4187725.0}, "523": {"J": -136611971.2, "K": -219364990.0, "L": -310326813.2}, "490": {"J": 152666308.7, "K": 153383202.6, "L": 135449504.0}, "535": {"J": 2327268, "K": 2234796, "L": 2046584}};
 
-        let cashChart, marginChart, unitChart, totalChart;
+        let cashChart, marginChart, unitChart, totalChart, timingChart;
         let selectedMatrix = { 4: null, 5: null, 6: null };
         let breakdownState = { rev: false, cogs: false, opex: false, cin: false, cout: false, ass: false, nop: false };
         const budgetedSeats = { 4: 2391000, 5: 2179000, 6: 1962000 };
         let currentUnitMonth = 4;
 
-        function updateAllColls() { const val = document.getElementById('bgn_coll_input').value; [4,5,6].forEach(id => document.getElementById(`coll_${id}`).value = val); updateDashboard(); }
+        function updateAllColls() { const val = document.getElementById('bgn_coll_input').value; [4,5,6].forEach(id => document.getElementById(`coll_${id}`).value = val); updateDashboard(); if (document.getElementById('content-timing').style.display === 'block') updateTimingChart(); }
         
         function switchTab(tab) {
             document.getElementById('content-detail').style.display = tab === 'detail' ? 'block' : 'none';
             document.getElementById('content-graph').style.display = tab === 'graph' ? 'block' : 'none';
             document.getElementById('content-unit').style.display = tab === 'unit' ? 'block' : 'none';
-            const detailBtn = document.getElementById('tab-detail'), graphBtn = document.getElementById('tab-graph'), unitBtn = document.getElementById('tab-unit'), badge = document.getElementById('mode-badge');
-            detailBtn.className = 'tab-btn tab-inactive'; graphBtn.className = 'tab-btn tab-inactive'; unitBtn.className = 'tab-btn tab-inactive';
+            document.getElementById('content-timing').style.display = tab === 'timing' ? 'block' : 'none';
+            const detailBtn = document.getElementById('tab-detail'), graphBtn = document.getElementById('tab-graph'), unitBtn = document.getElementById('tab-unit'), timingBtn = document.getElementById('tab-timing'), badge = document.getElementById('mode-badge');
+            detailBtn.className = 'tab-btn tab-inactive'; graphBtn.className = 'tab-btn tab-inactive'; unitBtn.className = 'tab-btn tab-inactive'; timingBtn.className = 'tab-btn tab-inactive';
             if (tab === 'detail') { detailBtn.className = 'tab-btn tab-active font-black'; badge.innerText = 'Simulation Mode'; }
             else if (tab === 'graph') { graphBtn.className = 'tab-btn tab-active font-black'; badge.innerText = 'Strategic Planning'; renderAllMatrices(); }
-            else { unitBtn.className = 'tab-btn tab-active font-black'; badge.innerText = 'Unit Analysis'; updateUnitChart(currentUnitMonth); }
+            else if (tab === 'unit') { unitBtn.className = 'tab-btn tab-active font-black'; badge.innerText = 'Unit Analysis'; updateUnitChart(currentUnitMonth); }
+            else { timingBtn.className = 'tab-btn tab-active font-black'; badge.innerText = 'Liquidity Timing'; updateTimingChart(); }
         }
 
         function scale(val, bCap, cCap, s) { return ((1 - (s || 0)) * val * (cCap / bCap)) + ((s || 0) * val); }
@@ -393,6 +459,7 @@
                 const assBox = document.getElementById('ass_content');
                 if (assBox) { assBox.style.display = breakdownState.ass ? 'grid' : 'none'; document.getElementById('btn-ass').innerText = breakdownState.ass ? '–' : '+'; }
                 renderCharts(res);
+                if (document.getElementById('content-timing').style.display === 'block') updateTimingChart();
             } catch (e) { console.error(e); }
         }
 
@@ -590,10 +657,98 @@
         function step(id, delta) { const i = document.getElementById(id); i.value = Math.max(0, Math.min(100, parseFloat(i.value) + delta)).toFixed(1); updateDashboard(); }
         function stepCap(id, delta) { const i = document.getElementById(id); i.value = Math.max(0, parseFloat(i.value) + delta); updateDashboard(); }
         function toggleBreakdown(id) { breakdownState[id] = !breakdownState[id]; updateDashboard(); }
-        function resetInputs() { [4,5,6].forEach(m => { document.getElementById(`coll_${m}`).value = 50; document.getElementById(`fuel_${m}`).value = 200; document.getElementById(`cap_${m}`).value = data[535][m===4?'J':(m===5?'K':'L')]; document.getElementById(`lf_${m}`).value = 80; document.getElementById(`fare_${m}`).value = 2000; }); document.getElementById('bgn_cash_input').value = 1200; document.getElementById('bgn_coll_input').value = 50; updateDashboard(); }
+        function resetInputs() { [4,5,6].forEach(m => { document.getElementById(`coll_${m}`).value = 50; document.getElementById(`fuel_${m}`).value = 200; document.getElementById(`cap_${m}`).value = data[535][m===4?'J':(m===5?'K':'L')]; document.getElementById(`lf_${m}`).value = 80; document.getElementById(`fare_${m}`).value = 2000; }); document.getElementById('bgn_cash_input').value = 1200; document.getElementById('bgn_coll_input').value = 50; document.getElementById('july_cap_input').value = data[535]['L']; document.getElementById('adv_booking_input').value = 50; updateDashboard(); if (document.getElementById('content-timing').style.display === 'block') updateTimingChart(); }
         function saveScenario() { localStorage.setItem('fin_sim_scenario', JSON.stringify({cap:[4,5,6].map(m=>document.getElementById(`cap_${m}`).value),lf:[4,5,6].map(m=>document.getElementById(`lf_${m}`).value),fare:[4,5,6].map(m=>document.getElementById(`fare_${m}`).value),fuel:[4,5,6].map(m=>document.getElementById(`fuel_${m}`).value),coll:[4,5,6].map(m=>document.getElementById(`coll_${m}`).value),bgn:document.getElementById('bgn_cash_input').value})); }
         function loadScenario() { const s = JSON.parse(localStorage.getItem('fin_sim_scenario')); if(!s) return; [4,5,6].forEach((m,i)=>{ document.getElementById(`cap_${m}`).value=s.cap[i];document.getElementById(`lf_${m}`).value=s.lf[i];document.getElementById(`fare_${m}`).value=s.fare[i];document.getElementById(`fuel_${m}`).value=s.fuel[i];document.getElementById(`coll_${m}`).value=s.coll[i]; }); document.getElementById('bgn_cash_input').value=s.bgn; updateDashboard(); }
         function shareLink() { const inputs = {cap:[4,5,6].map(m=>document.getElementById(`cap_${m}`).value),lf:[4,5,6].map(m=>document.getElementById(`lf_${m}`).value),fare:[4,5,6].map(m=>document.getElementById(`fare_${m}`).value),fuel:[4,5,6].map(m=>document.getElementById(`fuel_${m}`).value),coll:[4,5,6].map(m=>document.getElementById(`coll_${m}`).value),bgn:document.getElementById('bgn_cash_input').value}; const url = new URL(window.location.href); url.searchParams.set('s', btoa(JSON.stringify(inputs))); navigator.clipboard.writeText(url.toString()); alert('Link copied!'); }
+        function updateTimingChart() {
+            const advPct = parseFloat(document.getElementById('adv_booking_input').value) / 100;
+            document.getElementById('adv_booking_val').innerText = (advPct * 100).toFixed(0) + '%';
+            const julyCap = parseFloat(document.getElementById('july_cap_input').value);
+            
+            const res = { 4: calc(4, 'J'), 5: calc(5, 'K'), 6: calc(6, 'L') };
+            
+            // Calculate July Outlook Revenue (simulated with June parameters)
+            const julyFare = parseFloat(document.getElementById('fare_6').value);
+            const julyLF = parseFloat(document.getElementById('lf_6').value) / 100;
+            const julyFuel = parseFloat(document.getElementById('fuel_6').value);
+            const julyColl = parseFloat(document.getElementById('coll_6').value);
+            const resJuly = calcWithParams(6, 'L', julyCap, julyLF, julyFare, julyFuel, julyColl);
+            
+            const months = [4, 5, 6];
+            const revs = { 4: res[4].netRev, 5: res[5].netRev, 6: res[6].netRev, 7: resJuly.netRev };
+            const colls = { 4: parseFloat(document.getElementById('coll_4').value)/100, 5: parseFloat(document.getElementById('coll_5').value)/100, 6: parseFloat(document.getElementById('coll_6').value)/100 };
+            
+            const stdInflows = months.map(m => res[m].cin);
+            const timedInflows = months.map(m => {
+                const timedRev = (1 - advPct) * revs[m] + advPct * revs[m+1];
+                const deb = (m === 6) ? 1500e6 : 0;
+                return (timedRev * colls[m]) + deb;
+            });
+
+            // Calculate Metrics
+            const totStd = stdInflows.reduce((a,b) => a+b, 0);
+            const totTimed = timedInflows.reduce((a,b) => a+b, 0);
+            const delta = totTimed - totStd;
+            
+            const bgnCash = parseFloat(document.getElementById('bgn_cash_input').value) * 1e6;
+            const stdNetCash = months.map(m => res[m].netCash);
+            const timedNetCash = months.map((m, i) => timedInflows[i] - res[m].cout);
+            
+            let curStd = bgnCash, curTimed = bgnCash;
+            const stdBalance = stdNetCash.map(v => curStd += v);
+            curStd = bgnCash; // reset
+            const timedBalance = timedNetCash.map(v => curTimed += v);
+
+            document.getElementById('liquidity-delta-val').innerText = (delta / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            document.getElementById('liquidity-delta-card').className = delta >= 0 ? 'card p-8 bg-emerald-50 border-emerald-200' : 'card p-8 bg-red-50 border-red-200';
+            document.getElementById('liquidity-delta-val').className = delta >= 0 ? 'text-4xl font-black mb-1 text-emerald-700' : 'text-4xl font-black mb-1 text-red-700';
+            
+            document.getElementById('timing-std-cash').innerText = (totStd / 1e6).toLocaleString() + ' M';
+            document.getElementById('timing-adj-cash').innerText = (totTimed / 1e6).toLocaleString() + ' M';
+            document.getElementById('timing-june-end-std').innerText = (stdBalance[2] / 1e6).toLocaleString() + ' M';
+            document.getElementById('timing-june-end-adj').innerText = (timedBalance[2] / 1e6).toLocaleString() + ' M';
+
+            // Table Body
+            let html = '';
+            const rows = [
+                { label: 'P&L Revenue Recognized', data: [revs[4], revs[5], revs[6]], isTotal: true },
+                { label: 'Standard Cash Inflow', data: stdInflows, isTotal: false },
+                { label: 'Timed Cash Inflow (Adv Booking)', data: timedInflows, isTotal: false, highlight: true },
+                { label: 'Monthly Liquidity Delta', data: timedInflows.map((v,i) => v - stdInflows[i]), isTotal: false, isDelta: true },
+                { label: 'Ending Cash (Standard)', data: stdBalance, isTotal: true, gray: true },
+                { label: 'Ending Cash (Timed)', data: timedBalance, isTotal: true, highlight: true }
+            ];
+
+            rows.forEach(r => {
+                const total = r.data.reduce((a,b) => a+b, 0);
+                html += `<tr class="${r.isTotal ? 'font-bold bg-slate-50/50' : ''} ${r.highlight ? 'text-indigo-700' : ''} ${r.gray ? 'text-slate-400' : ''}">
+                    <td class="p-4 text-xs">${r.label}</td>
+                    ${r.data.map(v => `<td class="p-4 text-xs text-right ${r.isDelta && v < 0 ? 'text-red-600' : ''}">${(v/1e6).toLocaleString(undefined, {minimumFractionDigits: 1})}</td>`).join('')}
+                    <td class="p-4 text-xs text-right bg-indigo-50/30">${(total/1e6).toLocaleString(undefined, {minimumFractionDigits: 1})}</td>
+                </tr>`;
+            });
+            document.getElementById('timing_table_body').innerHTML = html;
+
+            // Chart
+            if (timingChart) timingChart.destroy();
+            timingChart = new Chart(document.getElementById('timingChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['April', 'May', 'June'],
+                    datasets: [
+                        { label: 'Standard Model', data: stdInflows.map(v => v/1e6), backgroundColor: '#94a3b8', borderRadius: 4 },
+                        { label: 'Timed Model', data: timedInflows.map(v => v/1e6), backgroundColor: '#6366f1', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'MTHB' } } },
+                    plugins: { legend: { position: 'bottom' }, datalabels: { display: true, anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: v => Math.round(v).toLocaleString() } }
+                }
+            });
+        }
+
         async function exportToImage() { document.body.classList.add('is-exporting'); updateDashboard(); setTimeout(async () => { const canvas = await html2canvas(document.getElementById('dashboard-content'), { scale: 2 }); const link = document.createElement('a'); link.download = 'Financial_Simulation.png'; link.href = canvas.toDataURL(); link.click(); document.body.classList.remove('is-exporting'); }, 800); }
 
         resetInputs();
