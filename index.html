@@ -212,6 +212,8 @@
                         <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Seat</span><span id="cur-unit-fixed" class="font-mono font-bold text-red-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Seat</span><span id="cur-unit-var" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                         <div class="flex justify-between items-center border-t border-slate-100 pt-2 font-black"><span class="text-[10px] uppercase text-slate-900">Total Cost / Seat</span><span id="cur-unit-total-cost" class="font-mono text-slate-900">0</span></div>
+                        <div class="flex justify-between items-center border-t border-slate-50 pt-4"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Fixed / Pax</span><span id="cur-unit-fixed-pax" class="font-mono font-bold text-red-600 text-sm">0</span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase text-xs">Var / Pax</span><span id="cur-unit-var-pax" class="font-mono font-bold text-blue-600 text-sm">0</span></div>
                     </div>
                 </div>
             </div>
@@ -303,7 +305,7 @@
 
     <script>
         Chart.register(ChartDataLabels);
-        const data = {"13": {"J": 4028998382.0, "K": 3454547006.0, "L": 2830765813.0}, "27": {"J": 640871090.8, "K": 617327361.4, "L": 578925899.8}, "49": {"J": 6621629.6, "K": 6275768.7, "L": 5777752.5}, "60": {"J": 13374694.1, "K": 13587809.6, "L": 13083174.0}, "63": {"J": 1554220.6, "K": 1385200.5, "L": 1231277.0}, "65": {"J": 1499316.6, "K": 1336267.3, "L": 1187781.3}, "86": {"J": 24146303.2, "K": 21822549.0, "L": 20886651.0}, "110": {"J": 0, "K": 0, "L": 0}, "112": {"J": 491354228.9, "K": 476720113.9, "L": 487420264.3}, "134": {"J": 2649081022.7, "K": 2538837045.2, "L": 2346385759.5}, "138": {"J": 368904874.9, "K": 364015769.8, "L": 339766780.0}, "149": {"J": 698736062.6, "K": 692265900.6, "L": 705689966.0}, "189": {"J": 24017634.4, "K": 21811041.0, "L": 21924784.9}, "214": {"J": 121919786.4, "K": 103212626.3, "L": 92570821.2}, "238": {"J": 108076964.5, "K": 109904078.5, "L": 105091539.6}, "256": {"J": 35548399.1, "K": 35321931.5, "L": 35182249.3}, "292": {"J": 44593798.2, "K": 44458440.2, "L": 45163933.5}, "314": {"J": 56677758.8, "K": 54017397.3, "L": 56434879.8}, "347": {"J": 2912079.0, "K": 15000.0, "L": 16959614.0}, "361": {"J": 111551208.9, "K": 95653918.7, "L": 88256220.3}, "378": {"J": 66037754.3, "K": 49863579.6, "L": 55125168.1}, "417": {"J": 950643.0, "K": 1406938.0, "L": 1598583.0}, "434": {"J": 0, "K": 0, "L": 0}, "445": {"J": 436497689.9, "K": 449920002.2, "L": 446073331.3}, "480": {"J": 213485486.2, "K": 208676981.9, "L": 189031366.5}, "474": {"J": -3697744.5, "K": -3697744.5, "L": -3697744.5}, "492": {"J": 4425581.2, "K": 3887767.3, "L": 3702623.0}, "503": {"J": -5947735.7, "K": -4638450.9, "L": -4187725.0}, "523": {"J": -136611971.2, "K": -219364990.0, "L": -310326813.2}, "490": {"J": 152666308.7, "K": 153383202.6, "L": 135449504.0}, "535": {"J": 2327268, "K": 2234796, "L": 2046584}};
+        const data = {"13": {"J": 4028998382.0, "K": 3454547006.0, "L": 2830765813.0}, "27": {"J": 640871090.8, "K": 617327361.4, "L": 578925899.8}, "49": {"J": 6621629.6, "K": 6275768.7, "L": 5777752.5}, "60": {"J": 13374694.1, "K": 13587809.6, "L": 13083174.0}, "63": {"J": 1554220.6, "K": 1385200.5, "L": 1231277.0}, "65": {"J": 1499316.6, "K": 1336267.3, "L": 1187781.3}, "86": {"J": 24146303.2, "K": 21822549.0, "L": 20886651.0}, "110": {"J": 0, "K": 0, "L": 0}, "112": {"J": 491354228.9, "K": 476720113.9, "L": 487420264.3}, "134": {"J": 2649081022.7, "K": 2538837045.2, "L": 2346385759.5}, "138": {"J": 368904874.9, "K": 364015769.8, "L": 339766780.0}, "149": {"J": 698736062.6, "K": 692265900.6, "L": 705689966.0}, "189": {"J": 24017634.4, "K": 21811041.0, "L": 21924784.9}, "214": {"J": 121919786.4, "K": 103212626.3, "L": 92570821.2}, "238": {"J": 108076964.5, "K": 109904078.5, "L": 105091539.6}, "256": {"J": 35548399.1, "K": 35321931.5, "L": 35182249.3}, "292": {"J": 44593798.2, "K": 44458440.2, "L": 45163933.5}, "314": {"J": 56677758.8, "K": 54017397.3, "L": 56434879.8}, "347": {"J": 2912079.0, "K": 15000.0, "L": 16959614.0}, "361": {"J": 111551208.9, "K": 95653918.7, "L": 88256220.3}, "378": {"J": 66037754.3, "K": 49863579.6, "L": 55125168.1}, "417": {"J": 950643.0, "K": 1406938.0, "L": 1598583.0}, "434": {"J": 0, "K": 0, "L": 0}, "445": {"J": 423261640.4, "K": 436788489.8, "L": 424930366.1}, "480": {"J": 198320647.6, "K": 195633513.6, "L": 187770146.3}, "474": {"J": -3697744.5, "K": -3697744.5, "L": -3697744.5}, "492": {"J": 4425581.2, "K": 3887767.3, "L": 3702623.0}, "503": {"J": -5947735.7, "K": -4638450.9, "L": -4187725.0}, "523": {"J": -136611971.2, "K": -219364990.0, "L": -310326813.2}, "490": {"J": 137501470.1, "K": 140339734.2, "L": 134188283.8}, "535": {"J": 2327268, "K": 2234796, "L": 2046584}};
 
         let cashChart, marginChart, unitChart, totalChart, timingChart;
         let selectedMatrix = { 4: null, 5: null, 6: null };
@@ -343,8 +345,8 @@
                 ga: scale(data[378][col], bCap, cCap, 1),
                 ope: scale(data[417][col], bCap, cCap, 1),
                 srv: scale(data[434][col], bCap, cCap, 1),
-                dep: scale(data[445][col], bCap, cCap, 1),
-                interest: scale(data[474][col] + data[480][col] + data[492][col], bCap, cCap, 1),
+                dep: data[445][col],
+                interest: data[474][col] + data[480][col] + data[492][col],
                 fx: scale(data[503][col], bCap, cCap, 1),
                 tax: scale(data[523][col], bCap, cCap, 1)
             };
@@ -369,7 +371,7 @@
             const deb = (id === 6) ? 1500e6 : 0, cin = (netRev * (collRate / 100)) + deb, 
                   coMnt = (cCap / budgetedSeats[id]) * data[149][col], 
                   coRnt = (58 * 277000 * 32) * (cCap / budgetedSeats[id]),
-                  coLeaseInt = data[490][col] * (cCap / budgetedSeats[id]),
+                  coLeaseInt = data[490][col],
                   coIntExcl = fCosts.interest - coLeaseInt,
                   cout = (totFixed - fCosts.dep - fCosts.interest) + totVar + coIntExcl + coMnt + coRnt;
             const rhs = (totFixed + totVar - vCosts.dist) - ((netRev-sched)*0.97);
@@ -589,6 +591,9 @@
             document.getElementById('cur-unit-fixed').innerText = Math.round(curFixedSeat).toLocaleString();
             document.getElementById('cur-unit-var').innerText = Math.round(curVarSeat).toLocaleString();
             document.getElementById('cur-unit-total-cost').innerText = Math.round(curTotalCostSeat).toLocaleString();
+
+            document.getElementById('cur-unit-fixed-pax').innerText = Math.round(curF / curPax).toLocaleString();
+            document.getElementById('cur-unit-var-pax').innerText = Math.round(curV / curPax).toLocaleString();
 
             document.getElementById('cur-total-rev').innerText = (curR / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
             document.getElementById('cur-total-fixed').innerText = (curF / 1e6).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
